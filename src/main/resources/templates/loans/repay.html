@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: main('Record Loan Repayment', ~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <div class="card" style="max-width: 650px; margin: 0 auto;">
+        <div class="card-header">
+            <div>
+                <div class="card-title">Direct Ad-Hoc Loan Repayment</div>
+                <div style="font-size: 0.82rem; color: var(--text-dim);" th:text="${loan.loanAccountNo} + ' — ' + ${loan.memberName}">Loan</div>
+            </div>
+            <a th:href="@{'/loans/view/' + ${loan.loanAccountNo}}" class="btn btn-secondary btn-sm">← Back</a>
+        </div>
+
+        <div style="background: rgba(15, 23, 42, 0.6); padding: 16px; border-radius: var(--radius-sm); margin-bottom: 20px; border: 1px solid var(--border-color);">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                <span style="color: var(--text-dim);">Outstanding Principal:</span>
+                <strong style="color: #f87171;" th:text="'₹' + ${loan.outstandingPrincipal}">₹0.00</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <span style="color: var(--text-dim);">Monthly Scheduled EMI:</span>
+                <strong style="color: var(--primary);" th:text="'₹' + ${loan.monthlyInstallment}">₹0.00</strong>
+            </div>
+        </div>
+
+        <form th:action="@{'/loans/repay/' + ${loan.loanAccountNo}}" method="post">
+            <div class="form-group">
+                <label>Principal Amount (INR) *</label>
+                <input type="number" step="0.01" name="principalAmount" th:value="${loan.monthlyInstallment.multiply(0.8).setScale(2, 4)}" required>
+            </div>
+            <div class="form-group">
+                <label>Interest Amount (INR) *</label>
+                <input type="number" step="0.01" name="interestAmount" th:value="${loan.monthlyInstallment.multiply(0.2).setScale(2, 4)}" required>
+            </div>
+            <div class="form-group">
+                <label>Payment Channel</label>
+                <select name="paymentMode">
+                    <option value="CASH">Cash Vault</option>
+                    <option value="BANK_TRANSFER">Bank Transfer (NEFT/UPI/IMPS)</option>
+                    <option value="CHEQUE">Cheque</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Receipt / Reference Number</label>
+                <input type="text" name="receiptNo" placeholder="e.g. RCP-VAULT-1092">
+            </div>
+            <div class="form-group">
+                <label>Remarks</label>
+                <input type="text" name="remarks" placeholder="Direct branch counter repayment">
+            </div>
+
+            <div style="margin-top: 24px; display: flex; gap: 10px;">
+                <button type="submit" class="btn btn-primary" style="flex: 1;">Post Repayment & Generate Receipt</button>
+                <a th:href="@{'/loans/view/' + ${loan.loanAccountNo}}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+
+</div>
+</body>
+</html>

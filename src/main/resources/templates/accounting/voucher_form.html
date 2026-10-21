@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: main('Post Double-Entry Voucher', ~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <div class="card" style="max-width: 750px; margin: 0 auto;">
+        <div class="card-header">
+            <div>
+                <div class="card-title">Post Double-Entry Accounting Voucher</div>
+                <div style="font-size: 0.82rem; color: var(--text-dim);">Legacy speccs.PayVouchers & speccs.Receipts Engine</div>
+            </div>
+            <a th:href="@{/accounting/vouchers}" class="btn btn-secondary btn-sm">← Back</a>
+        </div>
+
+        <form th:action="@{/accounting/voucher/save}" th:object="${voucher}" method="post">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Voucher Type *</label>
+                    <select th:field="*{voucherType}">
+                        <option value="RECEIPT">Receipt Voucher (Cash / Bank Inflow)</option>
+                        <option value="PAYMENT">Payment Voucher (Cash / Bank Outflow)</option>
+                        <option value="JOURNAL_VOUCHER">Journal Voucher (JV Inter-Account Transfer)</option>
+                        <option value="MISC_EXPENSE">Miscellaneous Office Expense</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Accounting Date *</label>
+                    <input type="date" th:field="*{voucherDate}" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Transaction Amount (INR) *</label>
+                    <input type="number" step="0.01" th:field="*{amount}" placeholder="5000.00" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Payment Channel</label>
+                    <select th:field="*{paymentMode}">
+                        <option value="CASH">Cash Vault</option>
+                        <option value="BANK_TRANSFER">Bank Current A/c</option>
+                        <option value="CHEQUE">Cheque</option>
+                        <option value="ADJUSTMENT">Internal Journal Adjustment</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Debit Ledger Account (Dr)</label>
+                    <select th:field="*{debitAccountCode}">
+                        <option value="">-- Select Debit Head --</option>
+                        <option th:each="a : ${chartOfAccounts}" th:value="${a.accountCode}" th:text="${a.accountCode} + ' — ' + ${a.accountName} + ' (' + ${a.accountType} + ')'"></option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Credit Ledger Account (Cr)</label>
+                    <select th:field="*{creditAccountCode}">
+                        <option value="">-- Select Credit Head --</option>
+                        <option th:each="a : ${chartOfAccounts}" th:value="${a.accountCode}" th:text="${a.accountCode} + ' — ' + ${a.accountName} + ' (' + ${a.accountType} + ')'"></option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Associated Member Code (Optional)</label>
+                    <input type="text" th:field="*{memberCode}" placeholder="e.g. MEM-1001">
+                </div>
+
+                <div class="form-group">
+                    <label>Cheque / UTR / Reference No</label>
+                    <input type="text" th:field="*{instrumentNo}" placeholder="e.g. CHQ-98120">
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 14px;">
+                <label>Particulars / Narration *</label>
+                <textarea th:field="*{narration}" rows="3" placeholder="Explain the business nature and authorization for this transaction..." required></textarea>
+            </div>
+
+            <div style="margin-top: 24px; display: flex; gap: 12px;">
+                <button type="submit" class="btn btn-primary" style="flex: 1;">Post to General Ledger</button>
+                <a th:href="@{/accounting/vouchers}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+
+</div>
+</body>
+</html>

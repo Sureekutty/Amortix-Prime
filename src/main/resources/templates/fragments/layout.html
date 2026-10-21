@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:fragment="main(title, content)">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title != null ? title + ' — AMORTIX | PRIME' : 'AMORTIX | PRIME'}">AMORTIX | PRIME</title>
+    <link rel="stylesheet" th:href="@{/css/amortix-theme.css}">
+</head>
+<body>
+<div class="app-container">
+
+    <!-- Fixed Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="brand-header">
+            <div class="brand-logo">AMORTIX</div>
+            <div class="brand-sub">Core Ledger Architecture</div>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-header">Treasury & Cockpit</li>
+            <li><a class="nav-link" th:href="@{/dashboard}">📊 Executive Dashboard</a></li>
+
+            <li class="nav-header">Membership & Capital</li>
+            <li><a class="nav-link" th:href="@{/members}">👥 Member Portfolio</a></li>
+            <li><a class="nav-link" th:href="@{/members/new}">➕ Register Member</a></li>
+            <li><a class="nav-link" th:href="@{/thrift}">💰 Thrift Fund Pool</a></li>
+
+            <li class="nav-header">Credit & Lending</li>
+            <li><a class="nav-link" th:href="@{/loans}">💳 Loan Portfolio</a></li>
+            <li><a class="nav-link" th:href="@{/loans/apply}">📝 Apply for Loan</a></li>
+            <li><a class="nav-link" th:href="@{/loans/surety-replace}">🔄 Surety Replacement</a></li>
+
+            <li class="nav-header">Deposit Products</li>
+            <li><a class="nav-link" th:href="@{/deposits}">🏦 Term Deposits (FXD/RCD)</a></li>
+            <li><a class="nav-link" th:href="@{/deposits/open}">📜 Open Deposit</a></li>
+
+            <li class="nav-header">Billing & Accounting</li>
+            <li><a class="nav-link" th:href="@{/recovery}">🗓️ Monthly Recovery</a></li>
+            <li><a class="nav-link" th:href="@{/accounting/daybook}">📖 Day Book Balancing</a></li>
+            <li><a class="nav-link" th:href="@{/accounting/vouchers}">🧾 Double-Entry Vouchers</a></li>
+            <li><a class="nav-link" th:href="@{/accounting/trial-balance}">⚖️ Trial Balance</a></li>
+
+            <li class="nav-header" sec:authorize="hasRole('ADMIN')">Governance & Admin</li>
+            <li sec:authorize="hasRole('ADMIN')"><a class="nav-link" th:href="@{/admin/rules}">⚙️ Master Rules</a></li>
+            <li sec:authorize="hasRole('ADMIN')"><a class="nav-link" th:href="@{/admin/interest-rates}">📈 Interest Rates</a></li>
+            <li sec:authorize="hasRole('ADMIN')"><a class="nav-link" th:href="@{/admin/polls}">🗳️ AGM Resolutions</a></li>
+            <li sec:authorize="hasRole('ADMIN')"><a class="nav-link" th:href="@{/admin/audit-logs}">🛡️ Audit Logs</a></li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="btn btn-secondary btn-sm" style="width: 100%;">Sign Out</button>
+            </form>
+        </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <div class="main-wrapper">
+        <header class="top-bar">
+            <div class="page-title" th:text="${title != null ? title : 'Cooperative Core'}">Page Title</div>
+            <div class="user-profile">
+                <div class="user-badge">
+                    <span>Officer:</span>
+                    <strong sec:authentication="name" style="color: var(--primary);">admin</strong>
+                </div>
+            </div>
+        </header>
+
+        <main class="content-body">
+            <!-- Flash Message Alerts -->
+            <div th:if="${successMessage}" class="alert alert-success">
+                <span>✓</span>
+                <span th:text="${successMessage}">Success message</span>
+            </div>
+            <div th:if="${errorMessage}" class="alert alert-danger">
+                <span>⚠</span>
+                <span th:text="${errorMessage}">Error message</span>
+            </div>
+            <div th:if="${infoMessage}" class="alert alert-info">
+                <span>ℹ</span>
+                <span th:text="${infoMessage}">Info message</span>
+            </div>
+
+            <!-- Injected Page Content -->
+            <th:block th:replace="${content}"></th:block>
+        </main>
+    </div>
+
+</div>
+</body>
+</html>

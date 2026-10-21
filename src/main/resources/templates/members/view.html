@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: main('Member 360° Profile', ~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <!-- Member Header Card -->
+    <div class="card">
+        <div class="card-header">
+            <div>
+                <h3 th:text="${member.fullName}" style="color: var(--text-main); font-size: 1.4rem;">Member Name</h3>
+                <span style="color: var(--primary); font-weight: 700;" th:text="${member.memberCode}">MEM-1001</span> |
+                <span th:text="${member.designation} + ' — ' + ${member.department}" style="color: var(--text-dim);">Designation</span>
+            </div>
+            <div>
+                <span th:class="'badge ' + (${member.status == 'ACTIVE'} ? 'badge-success' : 'badge-danger')"
+                      th:text="${member.status}">ACTIVE</span>
+                <a th:if="${member.status == 'ACTIVE'}" th:href="@{'/members/settle/' + ${member.memberCode}}" class="btn btn-danger btn-sm" style="margin-left: 10px;">Execute Settlement</a>
+            </div>
+        </div>
+
+        <div class="grid-stats" style="margin-bottom: 0;">
+            <div style="background: rgba(15, 23, 42, 0.4); padding: 14px; border-radius: var(--radius-sm);">
+                <div class="stat-label">Share Capital</div>
+                <div class="stat-value" th:text="'₹' + ${member.shareCapitalBalance}">₹0.00</div>
+                <div class="stat-sub"><span th:text="${member.totalShares}">0</span> Shares Held</div>
+            </div>
+            <div style="background: rgba(15, 23, 42, 0.4); padding: 14px; border-radius: var(--radius-sm);">
+                <div class="stat-label">Accumulated Thrift Pool</div>
+                <div class="stat-value" th:text="'₹' + ${member.thriftBalance}" style="color: var(--primary);">₹0.00</div>
+                <div class="stat-sub">Monthly: <span th:text="'₹' + ${member.monthlyThriftAmount}">₹0</span></div>
+            </div>
+            <div style="background: rgba(15, 23, 42, 0.4); padding: 14px; border-radius: var(--radius-sm);">
+                <div class="stat-label">Basic Salary</div>
+                <div class="stat-value" th:text="'₹' + ${member.basicPay}">₹0.00</div>
+                <div class="stat-sub">Max Loan Cap: <span th:text="'₹' + ${member.basicPay.multiply(10)}">₹0</span></div>
+            </div>
+            <div style="background: rgba(15, 23, 42, 0.4); padding: 14px; border-radius: var(--radius-sm);">
+                <div class="stat-label">Active Guarantees Given</div>
+                <div class="stat-value" th:text="${member.activeSuretyCount} + ' / 3'" style="color: var(--warning);">0 / 3</div>
+                <div class="stat-sub">Guarantor for other loans</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Loans Table -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">Loan Facilities</div>
+            <a th:href="@{'/loans/apply?memberCode=' + ${member.memberCode}}" class="btn btn-primary btn-sm">➕ Apply Loan for Member</a>
+        </div>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                <tr>
+                    <th>Loan No</th>
+                    <th>Type</th>
+                    <th>Purpose</th>
+                    <th>Sanction Amount</th>
+                    <th>Tenure</th>
+                    <th>Outstanding Principal</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="l : ${loans}">
+                    <td><strong th:text="${l.loanAccountNo}" style="color: var(--primary);">LTL-10001</strong></td>
+                    <td th:text="${l.loanType}">LTL</td>
+                    <td th:text="${l.loanPurpose}">Purpose</td>
+                    <td th:text="'₹' + ${l.sanctionAmount}">₹0.00</td>
+                    <td th:text="${l.tenureMonths} + ' Mos'">0 Mos</td>
+                    <td th:text="'₹' + ${l.outstandingPrincipal}">₹0.00</td>
+                    <td><span class="badge badge-info" th:text="${l.status}">ACTIVE</span></td>
+                    <td><a th:href="@{'/loans/view/' + ${l.loanAccountNo}}" class="btn btn-secondary btn-sm">Manage</a></td>
+                </tr>
+                <tr th:if="${loans.isEmpty()}">
+                    <td colspan="8" style="text-align: center; color: var(--text-dim); padding: 20px;">No loan accounts for this member.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Term Deposits Table -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">Term & Recurring Deposits</div>
+            <a th:href="@{'/deposits/open?memberCode=' + ${member.memberCode}}" class="btn btn-secondary btn-sm">➕ Open Term Deposit</a>
+        </div>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                <tr>
+                    <th>Deposit No</th>
+                    <th>Product</th>
+                    <th>Principal Amount</th>
+                    <th>Interest Rate</th>
+                    <th>Maturity Date</th>
+                    <th>Maturity Value</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="d : ${deposits}">
+                    <td><strong th:text="${d.depositAccountNo}" style="color: var(--primary);">FXD-10001</strong></td>
+                    <td th:text="${d.depositType}">FXD</td>
+                    <td th:text="'₹' + ${d.principalAmount}">₹0.00</td>
+                    <td th:text="${d.interestRate} + '%'">0%</td>
+                    <td th:text="${d.maturityDate}">Date</td>
+                    <td th:text="'₹' + ${d.maturityAmount}">₹0.00</td>
+                    <td><span class="badge badge-success" th:text="${d.status}">ACTIVE</span></td>
+                    <td><a th:href="@{'/deposits/view/' + ${d.depositAccountNo}}" class="btn btn-secondary btn-sm">Manage</a></td>
+                </tr>
+                <tr th:if="${deposits.isEmpty()}">
+                    <td colspan="8" style="text-align: center; color: var(--text-dim); padding: 20px;">No active term deposits.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

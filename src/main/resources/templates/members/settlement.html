@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: main('Member Retirement Settlement', ~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <div class="card">
+        <div class="card-header">
+            <div>
+                <div class="card-title">Full & Final Co-operative Account Settlement</div>
+                <div style="font-size: 0.82rem; color: var(--text-dim);">Legacy SP_MemberSettlementNew Core Engine</div>
+            </div>
+            <a th:href="@{'/members/view/' + ${member.memberCode}}" class="btn btn-secondary btn-sm">← Back to Profile</a>
+        </div>
+
+        <div style="background: rgba(15, 23, 42, 0.6); padding: 18px; border-radius: var(--radius-sm); margin-bottom: 24px; border: 1px solid var(--border-color);">
+            <h4 th:text="${member.fullName} + ' (' + ${member.memberCode} + ')'" style="color: var(--text-main); margin-bottom: 6px;">Member</h4>
+            <div style="color: var(--text-dim); font-size: 0.85rem;">
+                Employee ID: <strong th:text="${member.employeeCode}">EMP-123</strong> |
+                Department: <strong th:text="${member.department}">Dept</strong> |
+                Status: <strong th:text="${member.status}">ACTIVE</strong>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 28px;">
+            <!-- Credit Refund Items -->
+            <div style="background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: var(--radius-sm); padding: 18px;">
+                <h4 style="color: #34d399; margin-bottom: 14px;">Refunds Payable to Member (Credits)</h4>
+                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <span>Paid-Up Share Capital:</span>
+                    <strong th:text="'₹' + ${shareRefund}">₹0.00</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <span>Accumulated Thrift Fund Pool:</span>
+                    <strong th:text="'₹' + ${thriftRefund}">₹0.00</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <span>Active Fixed & Term Deposits:</span>
+                    <strong th:text="'₹' + ${depositRefund}">₹0.00</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 12px 0 0 0; font-size: 1.05rem; color: #34d399;">
+                    <span>Total Gross Refund:</span>
+                    <strong th:text="'₹' + ${shareRefund.add(thriftRefund).add(depositRefund)}">₹0.00</strong>
+                </div>
+            </div>
+
+            <!-- Deductions Items -->
+            <div style="background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: var(--radius-sm); padding: 18px;">
+                <h4 style="color: #f87171; margin-bottom: 14px;">Deductions & Loan Liquidations (Debits)</h4>
+                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <span>Total Outstanding Loan Liabilities:</span>
+                    <strong th:text="'₹' + ${loanDeduction}">₹0.00</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <span>Pending Recovery Penalties:</span>
+                    <strong>₹0.00</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 12px 0 0 0; font-size: 1.05rem; color: #f87171;">
+                    <span>Total Net Deductions:</span>
+                    <strong th:text="'₹' + ${loanDeduction}">₹0.00</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Net Settlement Summary Card -->
+        <div style="background: var(--bg-card-hover); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 24px; text-align: center; margin-bottom: 24px;">
+            <div style="font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim);">Net Cooperative Settlement Payout</div>
+            <div style="font-size: 2.2rem; font-weight: 800; color: var(--primary); margin: 8px 0;"
+                 th:text="'₹' + ${netSettlementPayable}">₹0.00</div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+                Executing this settlement will atomically close all active loans, liquidate share capital and thrift balances, and issue an official settlement Payment Voucher.
+            </p>
+        </div>
+
+        <form th:action="@{'/members/settle/' + ${member.memberCode} + '/execute'}" method="post">
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label>Settlement Order Remarks / Reference Authority</label>
+                <input type="text" name="remarks" placeholder="e.g. Superannuation Retirement Resolution #Coop/2026/102" required>
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <button type="submit" class="btn btn-danger">Confirm & Execute Settlement</button>
+                <a th:href="@{'/members/view/' + ${member.memberCode}}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: main('Society Master Rules', ~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <div class="card">
+        <div class="card-header">
+            <div>
+                <div class="card-title">Cooperative Society Master Rules Engine</div>
+                <div style="font-size: 0.82rem; color: var(--text-dim);">Legacy speccs.Rules Configuration</div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table>
+                <thead>
+                <tr>
+                    <th>Rule Code</th>
+                    <th>Rule Name</th>
+                    <th>Category</th>
+                    <th>Current Value</th>
+                    <th>Description</th>
+                    <th>Update Rule</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="r : ${rules}">
+                    <td><strong th:text="${r.ruleCode}" style="color: var(--primary);">MAX_LOAN_MULTIPLIER</strong></td>
+                    <td th:text="${r.ruleName}">Name</td>
+                    <td><span class="badge badge-info" th:text="${r.ruleCategory}">LOAN</span></td>
+                    <td style="font-weight: 700; color: #34d399;" th:text="${r.ruleValue}">10</td>
+                    <td th:text="${r.description}">Description</td>
+                    <td>
+                        <form th:action="@{/admin/rules/update}" method="post" style="display: flex; gap: 8px;">
+                            <input type="hidden" name="ruleCode" th:value="${r.ruleCode}">
+                            <input type="text" name="ruleValue" th:value="${r.ruleValue}" style="width: 100px; padding: 4px 8px;">
+                            <button type="submit" class="btn btn-secondary btn-sm">Save</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

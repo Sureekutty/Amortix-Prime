@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: main('Term Deposit Details', ~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <div class="card">
+        <div class="card-header">
+            <div>
+                <h3 th:text="${deposit.depositAccountNo} + ' — ' + ${deposit.depositType}" style="color: var(--text-main); font-size: 1.4rem;">Deposit</h3>
+                <span th:text="${deposit.memberName} + ' (' + ${deposit.memberCode} + ')'" style="color: var(--primary); font-weight: 700;">Member</span> |
+                <span th:text="${deposit.tenureMonths} + ' Months Tenure'" style="color: var(--text-dim);">Tenure</span>
+            </div>
+            <div>
+                <a th:if="${deposit.status == 'ACTIVE'}" href="#prematureCloseModal" class="btn btn-danger btn-sm">Premature Withdrawal</a>
+                <a th:if="${deposit.depositType == 'RCD' and deposit.status == 'ACTIVE'}" href="#rcdModal" class="btn btn-primary btn-sm" style="margin-left: 8px;">➕ Post Installment</a>
+            </div>
+        </div>
+
+        <div class="grid-stats" style="margin-bottom: 0;">
+            <div style="background: rgba(15, 23, 42, 0.4); padding: 14px; border-radius: var(--radius-sm);">
+                <div class="stat-label">Principal Amount</div>
+                <div class="stat-value" th:text="'₹' + ${deposit.principalAmount}">₹0.00</div>
+                <div class="stat-sub">Paid In: <span th:text="'₹' + ${deposit.totalPaidIn}">₹0</span></div>
+            </div>
+            <div style="background: rgba(15, 23, 42, 0.4); padding: 14px; border-radius: var(--radius-sm);">
+                <div class="stat-label">Interest Rate</div>
+                <div class="stat-value" th:text="${deposit.interestRate} + '%'" style="color: var(--primary);">0%</div>
+                <div class="stat-sub">Compounding: <span th:text="${deposit.compoundingFrequency}">QUARTERLY</span></div>
+            </div>
+            <div style="background: rgba(15, 23, 42, 0.4); padding: 14px; border-radius: var(--radius-sm);">
+                <div class="stat-label">Maturity Value</div>
+                <div class="stat-value" th:text="'₹' + ${deposit.maturityAmount}" style="color: #34d399;">₹0.00</div>
+                <div class="stat-sub">Maturity Date: <span th:text="${deposit.maturityDate}">Date</span></div>
+            </div>
+            <div style="background: rgba(15, 23, 42, 0.4); padding: 14px; border-radius: var(--radius-sm);">
+                <div class="stat-label">Deposit Status</div>
+                <div class="stat-value" style="font-size: 1.25rem;">
+                    <span th:class="'badge ' + (${deposit.status == 'ACTIVE'} ? 'badge-success' : 'badge-danger')"
+                          th:text="${deposit.status}">ACTIVE</span>
+                </div>
+                <div class="stat-sub">Pledged Lien: <span th:text="${deposit.lienMarked ? 'YES' : 'NO'}">NO</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deposit Transaction History -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">Deposit Transaction History</div>
+        </div>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Transaction Type</th>
+                    <th>Amount</th>
+                    <th>Balance</th>
+                    <th>Voucher / Ref</th>
+                    <th>Remarks</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="t : ${transactions}">
+                    <td th:text="${t.txnDate}">Date</td>
+                    <td><span class="badge badge-info" th:text="${t.txnType}">OPENING</span></td>
+                    <td th:text="'₹' + ${t.amount}" style="font-weight: 700; color: #34d399;">₹0.00</td>
+                    <td th:text="'₹' + ${t.balanceAfterTxn}">₹0.00</td>
+                    <td th:text="${t.voucherOrReceiptNo}">-</td>
+                    <td th:text="${t.remarks}">Remarks</td>
+                </tr>
+                <tr th:if="${transactions.isEmpty()}">
+                    <td colspan="6" style="text-align: center; color: var(--text-dim); padding: 20px;">No transaction records.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Premature Close Modal (Zero-JS via :target) -->
+    <div id="prematureCloseModal" class="modal-overlay">
+        <div class="modal-box">
+            <a href="#" class="modal-close">&times;</a>
+            <h3 style="margin-bottom: 12px; color: var(--danger);">Premature Deposit Closure</h3>
+            <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 16px;">
+                Premature closure applies a <strong>1.5% penalty deduction</strong> (as per legacy speccs.Interest rule FXP).
+                Interest will be recalculated on a simple basis.
+            </p>
+            <form th:action="@{'/deposits/premature-close/' + ${deposit.depositAccountNo}}" method="post">
+                <div class="form-group">
+                    <label>Closure Reason / Member Application Ref</label>
+                    <input type="text" name="remarks" placeholder="e.g. Member emergency fund request" required>
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                    <a href="#" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-danger">Execute Premature Closure</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- RCD Installment Modal -->
+    <div id="rcdModal" class="modal-overlay">
+        <div class="modal-box">
+            <a href="#" class="modal-close">&times;</a>
+            <h3 style="margin-bottom: 12px; color: var(--text-main);">Collect Monthly RCD Installment</h3>
+            <form th:action="@{/deposits/rcd-installment}" method="post">
+                <input type="hidden" name="depositAccountNo" th:value="${deposit.depositAccountNo}">
+                <div class="form-group">
+                    <label>Installment Amount (INR)</label>
+                    <input type="number" step="0.01" name="amount" th:value="${deposit.monthlyInstallment}" required>
+                </div>
+                <div class="form-group">
+                    <label>Receipt Reference</label>
+                    <input type="text" name="receiptNo" placeholder="e.g. RCP-RCD-109">
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                    <a href="#" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Record Installment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

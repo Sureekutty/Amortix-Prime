@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: main('Apply for Loan Facility', ~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">New Credit Facility Application</div>
+            <a th:href="@{/loans}" class="btn btn-secondary btn-sm">← Back to Loans</a>
+        </div>
+
+        <form th:action="@{/loans/save}" th:object="${loan}" method="post">
+            <h4 style="color: var(--primary); margin-bottom: 16px; font-size: 0.95rem;">Borrower & Loan Product</h4>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Borrower Member Code *</label>
+                    <input type="text" th:field="*{memberCode}" placeholder="e.g. MEM-1001" required list="memberList">
+                    <datalist id="memberList">
+                        <option th:each="m : ${activeMembers}" th:value="${m.memberCode}" th:text="${m.fullName} + ' (Basic: ₹' + ${m.basicPay} + ')'"></option>
+                    </datalist>
+                </div>
+
+                <div class="form-group">
+                    <label>Loan Product Type *</label>
+                    <select th:field="*{loanType}">
+                        <option value="LTL">LTL — Long Term Loan (Up to 120 Mos @ 9.0%)</option>
+                        <option value="EXL">EXL — Executive / Express Loan (Up to 36 Mos @ 10.5%)</option>
+                        <option value="ELG">ELG — Emergency Loan (Up to 12 Mos @ 8.5%)</option>
+                        <option value="FDL">FDL — Loan Against Fixed Deposit Collateral (Up to 60 Mos @ 8.0%)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Sanction Amount (INR) *</label>
+                    <input type="number" step="1000" th:field="*{sanctionAmount}" placeholder="200000.00" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Repayment Tenure (Months) *</label>
+                    <input type="number" th:field="*{tenureMonths}" placeholder="36" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Interest Method</label>
+                    <select th:field="*{interestMethod}">
+                        <option value="REDUCING_BALANCE">Reducing Balance (Standard Co-op EMI)</option>
+                        <option value="SIMPLE">Simple Flat Interest</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Loan Purpose</label>
+                    <input type="text" th:field="*{loanPurpose}" placeholder="e.g. Housing, Medical Emergency, Child Education">
+                </div>
+            </div>
+
+            <h4 style="color: var(--primary); margin: 24px 0 16px 0; font-size: 0.95rem;">Guarantor & Surety Details (Legacy speccs.Surety)</h4>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Surety 1 Member Code (Guarantor)</label>
+                    <input type="text" th:field="*{sureties[0].suretyMemberCode}" placeholder="e.g. MEM-1002" list="memberList">
+                </div>
+                <div class="form-group">
+                    <label>Surety 2 Member Code (Guarantor)</label>
+                    <input type="text" th:field="*{sureties[1].suretyMemberCode}" placeholder="e.g. MEM-1003" list="memberList">
+                </div>
+            </div>
+
+            <h4 style="color: var(--primary); margin: 24px 0 16px 0; font-size: 0.95rem;">Fixed Deposit Collateral (Required ONLY for FDL Product)</h4>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Collateral Fixed Deposit Account No</label>
+                    <input type="text" th:field="*{collateralDepositNo}" placeholder="e.g. FXD-10001">
+                </div>
+            </div>
+
+            <div style="margin-top: 30px; display: flex; gap: 12px;">
+                <button type="submit" class="btn btn-primary">Submit Application</button>
+                <a th:href="@{/loans}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+
+</div>
+</body>
+</html>

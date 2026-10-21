@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: main('Loan Portfolio', ~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">Credit & Lending Portfolio</div>
+            <a th:href="@{/loans/apply}" class="btn btn-primary btn-sm">➕ Apply for New Loan</a>
+        </div>
+
+        <!-- Filter Form -->
+        <form th:action="@{/loans}" method="get" style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <input type="text" name="search" th:value="${search}" placeholder="Search Loan No, Member Code, or Name..." style="max-width: 400px;">
+            <button type="submit" class="btn btn-secondary">Filter</button>
+            <a th:if="${search}" th:href="@{/loans}" class="btn btn-secondary">Reset</a>
+        </form>
+
+        <div class="table-responsive">
+            <table>
+                <thead>
+                <tr>
+                    <th>Loan Account No</th>
+                    <th>Borrower Member</th>
+                    <th>Type</th>
+                    <th>Sanction Amount</th>
+                    <th>Interest Rate</th>
+                    <th>Tenure</th>
+                    <th>EMI</th>
+                    <th>Outstanding Principal</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="l : ${loansPage.content}">
+                    <td><strong th:text="${l.loanAccountNo}" style="color: var(--primary);">LTL-10001</strong></td>
+                    <td>
+                        <div th:text="${l.memberName}">Member Name</div>
+                        <div style="font-size: 0.75rem; color: var(--text-dim);" th:text="${l.memberCode}">MEM-1001</div>
+                    </td>
+                    <td><span class="badge badge-info" th:text="${l.loanType}">LTL</span></td>
+                    <td th:text="'₹' + ${l.sanctionAmount}">₹0.00</td>
+                    <td th:text="${l.interestRate} + '%'">0%</td>
+                    <td th:text="${l.tenureMonths} + ' Mos'">0 Mos</td>
+                    <td th:text="'₹' + ${l.monthlyInstallment}">₹0.00</td>
+                    <td th:text="'₹' + ${l.outstandingPrincipal}" style="font-weight: 700; color: #f87171;">₹0.00</td>
+                    <td>
+                        <span th:class="'badge ' + (${l.status == 'ACTIVE'} ? 'badge-success' : (${l.status == 'APPLIED'} ? 'badge-warning' : 'badge-danger'))"
+                              th:text="${l.status}">STATUS</span>
+                    </td>
+                    <td>
+                        <a th:href="@{'/loans/view/' + ${l.loanAccountNo}}" class="btn btn-secondary btn-sm">Manage</a>
+                        <a th:href="@{'/loans/pdf/' + ${l.loanAccountNo}}" class="btn btn-secondary btn-sm" title="Download Official PDF Sanction Order">PDF</a>
+                    </td>
+                </tr>
+                <tr th:if="${loansPage.empty}">
+                    <td colspan="10" style="text-align: center; color: var(--text-dim); padding: 30px;">No loans found.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" th:if="${loansPage.totalPages > 1}">
+            <a th:if="${loansPage.hasPrevious()}"
+               th:href="@{/loans(page=${loansPage.number - 1}, search=${search})}" class="page-item">&laquo; Prev</a>
+            <span class="page-item active" th:text="${loansPage.number + 1}">1</span>
+            <a th:if="${loansPage.hasNext()}"
+               th:href="@{/loans(page=${loansPage.number + 1}, search=${search})}" class="page-item">Next &raquo;</a>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

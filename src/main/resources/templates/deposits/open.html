@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: main('Open Term Deposit', ~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">Open New Term Deposit Account</div>
+            <a th:href="@{/deposits}" class="btn btn-secondary btn-sm">← Back</a>
+        </div>
+
+        <form th:action="@{/deposits/save}" th:object="${deposit}" method="post">
+            <h4 style="color: var(--primary); margin-bottom: 16px; font-size: 0.95rem;">Deposit Type & Member</h4>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Member Code *</label>
+                    <input type="text" th:field="*{memberCode}" placeholder="e.g. MEM-1001" required list="memberList">
+                    <datalist id="memberList">
+                        <option th:each="m : ${activeMembers}" th:value="${m.memberCode}" th:text="${m.fullName}"></option>
+                    </datalist>
+                </div>
+
+                <div class="form-group">
+                    <label>Deposit Product *</label>
+                    <select th:field="*{depositType}">
+                        <option value="FXD">FXD — Fixed Deposit (Lump sum compounded quarterly)</option>
+                        <option value="RCD">RCD — Recurring Cumulative Deposit (Monthly savings)</option>
+                        <option value="MIS">MIS — Monthly Income Scheme (Periodic monthly interest)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Principal Amount (INR) *</label>
+                    <input type="number" step="1000" th:field="*{principalAmount}" placeholder="50000.00" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Monthly Installment (For RCD Product Only)</label>
+                    <input type="number" step="100" th:field="*{monthlyInstallment}" placeholder="1000.00">
+                </div>
+
+                <div class="form-group">
+                    <label>Tenure (Months) *</label>
+                    <input type="number" th:field="*{tenureMonths}" placeholder="12" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Compounding Frequency</label>
+                    <select th:field="*{compoundingFrequency}">
+                        <option value="QUARTERLY">Quarterly (Co-operative Standard)</option>
+                        <option value="HALF_YEARLY">Half Yearly</option>
+                        <option value="YEARLY">Yearly</option>
+                        <option value="SIMPLE">Simple Interest</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="background: rgba(15, 23, 42, 0.6); padding: 16px; border-radius: var(--radius-sm); margin: 20px 0; border: 1px solid var(--border-color); font-size: 0.85rem; color: var(--text-dim);">
+                <strong style="color: var(--primary);">Maturity Date Cutoff Rule (Legacy SP_Calculations):</strong>
+                Deposits booked on or before the 3rd of the month mature exactly after N months on the same day. Deposits booked after the 3rd will roll over to the 1st of the next month plus tenure.
+            </div>
+
+            <div style="margin-top: 24px; display: flex; gap: 12px;">
+                <button type="submit" class="btn btn-primary">Open Deposit Account</button>
+                <a th:href="@{/deposits}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+
+</div>
+</body>
+</html>

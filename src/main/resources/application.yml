@@ -1,0 +1,30 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  application:
+    name: Amortix-Prime
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/amortix_prime_db}
+      auto-index-creation: true
+  thymeleaf:
+    cache: false
+    mode: HTML
+    encoding: UTF-8
+  servlet:
+    multipart:
+      max-file-size: 15MB
+      max-request-size: 15MB
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+
+logging:
+  level:
+    root: INFO
+    com.amortix.prime: DEBUG
+    org.springframework.data.mongodb.core.MongoTemplate: DEBUG

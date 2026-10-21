@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: main('Register Cooperative Member', ~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">Enroll New Shareholding Member</div>
+            <a th:href="@{/members}" class="btn btn-secondary btn-sm">← Back to List</a>
+        </div>
+
+        <form th:action="@{/members/save}" th:object="${member}" method="post">
+            <h4 style="color: var(--primary); margin-bottom: 16px; font-size: 0.95rem;">Personal & Employment Details</h4>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Full Name *</label>
+                    <input type="text" th:field="*{fullName}" placeholder="e.g. Ramesh Kumar" required>
+                </div>
+                <div class="form-group">
+                    <label>Father / Spouse Name</label>
+                    <input type="text" th:field="*{fatherOrSpouseName}" placeholder="e.g. S. Kumar">
+                </div>
+                <div class="form-group">
+                    <label>Gender</label>
+                    <select th:field="*{gender}">
+                        <option value="MALE">Male</option>
+                        <option value="FEMALE">Female</option>
+                        <option value="OTHER">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Date of Birth</label>
+                    <input type="date" th:field="*{dob}">
+                </div>
+                <div class="form-group">
+                    <label>Employee Code *</label>
+                    <input type="text" th:field="*{employeeCode}" placeholder="e.g. EMP-1092" required>
+                </div>
+                <div class="form-group">
+                    <label>Department</label>
+                    <input type="text" th:field="*{department}" placeholder="e.g. Engineering">
+                </div>
+                <div class="form-group">
+                    <label>Designation</label>
+                    <input type="text" th:field="*{designation}" placeholder="e.g. Senior Officer">
+                </div>
+                <div class="form-group">
+                    <label>Joining Date</label>
+                    <input type="date" th:field="*{joiningDate}">
+                </div>
+            </div>
+
+            <h4 style="color: var(--primary); margin: 24px 0 16px 0; font-size: 0.95rem;">Financial Salary & Cooperative Capital</h4>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Basic Pay (INR) *</label>
+                    <input type="number" step="0.01" th:field="*{basicPay}" placeholder="50000.00" required>
+                </div>
+                <div class="form-group">
+                    <label>Monthly Compulsory Thrift (INR) *</label>
+                    <input type="number" step="0.01" th:field="*{monthlyThriftAmount}" placeholder="1000.00" required>
+                </div>
+                <div class="form-group">
+                    <label>Initial Shares Count (₹100/share)</label>
+                    <input type="number" th:field="*{totalShares}" placeholder="10">
+                </div>
+                <div class="form-group">
+                    <label>Initial Paid-up Share Capital (INR)</label>
+                    <input type="number" step="0.01" th:field="*{shareCapitalBalance}" placeholder="1000.00">
+                </div>
+            </div>
+
+            <h4 style="color: var(--primary); margin: 24px 0 16px 0; font-size: 0.95rem;">Primary Bank Account for Disbursements</h4>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Bank Name</label>
+                    <input type="text" th:field="*{bankDetail.bankName}" placeholder="e.g. State Bank of India">
+                </div>
+                <div class="form-group">
+                    <label>Branch</label>
+                    <input type="text" th:field="*{bankDetail.branch}" placeholder="e.g. T. Nagar Branch">
+                </div>
+                <div class="form-group">
+                    <label>Account Number</label>
+                    <input type="text" th:field="*{bankDetail.accountNumber}" placeholder="e.g. 30891234567">
+                </div>
+                <div class="form-group">
+                    <label>IFSC Code</label>
+                    <input type="text" th:field="*{bankDetail.ifscCode}" placeholder="e.g. SBIN0001234">
+                </div>
+            </div>
+
+            <div style="margin-top: 30px; display: flex; gap: 12px;">
+                <button type="submit" class="btn btn-primary">Enroll Member</button>
+                <a th:href="@{/members}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: main('Monthly Recovery Cycle Inspection', ~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <div class="card">
+        <div class="card-header">
+            <div>
+                <h3 th:text="${run.runCode} + ' — ' + ${run.billingCycleName}" style="color: var(--text-main); font-size: 1.4rem;">Cycle Inspection</h3>
+                <span th:class="'badge ' + (${run.status == 'RECONCILED'} ? 'badge-success' : 'badge-warning')"
+                      th:text="${run.status}">STATUS</span>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <a th:href="@{'/recovery/export/' + ${run.runCode}}" class="btn btn-secondary btn-sm">📄 Export Demand Text File</a>
+                <a th:href="@{/recovery}" class="btn btn-secondary btn-sm">← Back to Cycles</a>
+            </div>
+        </div>
+
+        <div class="grid-stats" style="margin-bottom: 24px;">
+            <div style="background: rgba(15, 23, 42, 0.4); padding: 14px; border-radius: var(--radius-sm);">
+                <div class="stat-label">Total Gross Demand</div>
+                <div class="stat-value" th:text="'₹' + ${run.totalGrossDemand}">₹0.00</div>
+                <div class="stat-sub">Principal + Interest + Thrift + RD</div>
+            </div>
+            <div style="background: rgba(15, 23, 42, 0.4); padding: 14px; border-radius: var(--radius-sm);">
+                <div class="stat-label">Actual Recovered</div>
+                <div class="stat-value" th:text="'₹' + ${run.totalActualRecovered}" style="color: #34d399;">₹0.00</div>
+                <div class="stat-sub">From Payroll Response</div>
+            </div>
+            <div style="background: rgba(15, 23, 42, 0.4); padding: 14px; border-radius: var(--radius-sm);">
+                <div class="stat-label">Variance / Shortage</div>
+                <div class="stat-value" th:text="'₹' + ${run.totalVarianceAmount}" style="color: #f87171;">₹0.00</div>
+                <div class="stat-sub">Flagged Discrepancies</div>
+            </div>
+        </div>
+
+        <!-- Payroll Response File Upload (Legacy speccs.MonthlyResponse) -->
+        <div th:if="${run.status != 'RECONCILED'}" style="background: rgba(56, 189, 248, 0.05); border: 1px dashed var(--primary); border-radius: var(--radius-sm); padding: 20px; margin-bottom: 28px;">
+            <h4 style="color: var(--primary); margin-bottom: 8px;">Upload Employer Payroll Response File</h4>
+            <p style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 14px;">
+                Upload the payroll response file (.txt or .csv with lines formatted as: <code>MemberCode,DeductedAmount</code>).
+                The reconciliation engine will automatically distribute payments across Thrift, Loan Interest, and Loan Principal according to statutory waterfall priority rules.
+            </p>
+            <form th:action="@{'/recovery/reconcile/' + ${run.runCode}}" method="post" enctype="multipart/form-data" style="display: flex; gap: 12px; align-items: flex-end;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <input type="file" name="responseFile" required style="padding: 7px;">
+                </div>
+                <button type="submit" class="btn btn-primary">Process & Reconcile Response</button>
+            </form>
+        </div>
+
+        <!-- Discrepancies / Wrong Payments Table (Legacy speccs.WrongPayment) -->
+        <div th:if="${!run.discrepancies.isEmpty()}" style="margin-bottom: 28px;">
+            <h4 style="color: #f87171; margin-bottom: 12px;">Discrepancies & Variances (speccs.WrongPayment)</h4>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Member Code</th>
+                        <th>Emp ID</th>
+                        <th>Demand Amount</th>
+                        <th>Actual Deducted</th>
+                        <th>Variance Amount</th>
+                        <th>Variance Remarks</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="w : ${run.discrepancies}">
+                        <td><strong th:text="${w.memberCode}" style="color: var(--primary);">MEM-1001</strong></td>
+                        <td th:text="${w.employeeCode}">EMP-123</td>
+                        <td th:text="'₹' + ${w.demandAmount}">₹0.00</td>
+                        <td th:text="'₹' + ${w.deductedAmount}">₹0.00</td>
+                        <td th:text="'₹' + ${w.shortOrExcessAmount}" style="color: #f87171; font-weight: 700;">₹0.00</td>
+                        <td th:text="${w.remarks}">Remarks</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Member Demand Schedule List -->
+        <h4 style="color: var(--text-main); margin-bottom: 12px;">Member Demand Schedule Items</h4>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                <tr>
+                    <th>Member Code</th>
+                    <th>Full Name</th>
+                    <th>Thrift</th>
+                    <th>Loan Principal</th>
+                    <th>Loan Interest</th>
+                    <th>Total Demand</th>
+                    <th>Actual Deducted</th>
+                    <th>Status</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="it : ${run.items}">
+                    <td><strong th:text="${it.memberCode}" style="color: var(--primary);">MEM-1001</strong></td>
+                    <td th:text="${it.memberName}">Name</td>
+                    <td th:text="'₹' + ${it.thriftDemand}">₹0.00</td>
+                    <td th:text="'₹' + ${it.loanPrincipalDemand}">₹0.00</td>
+                    <td th:text="'₹' + ${it.loanInterestDemand}">₹0.00</td>
+                    <td th:text="'₹' + ${it.totalDemand}" style="font-weight: 700;">₹0.00</td>
+                    <td th:text="'₹' + ${it.actualDeducted}" style="color: #34d399;">₹0.00</td>
+                    <td>
+                        <span th:class="'badge ' + (${it.status == 'MATCHED'} ? 'badge-success' : (${it.status == 'PENDING'} ? 'badge-info' : 'badge-danger'))"
+                              th:text="${it.status}">STATUS</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

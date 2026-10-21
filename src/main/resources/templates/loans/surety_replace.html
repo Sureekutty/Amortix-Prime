@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: main('Guarantor Surety Replacement', ~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <div class="card">
+        <div class="card-header">
+            <div>
+                <div class="card-title">Surety Guarantor Replacement Workflow</div>
+                <div style="font-size: 0.82rem; color: var(--text-dim);">Legacy suretyReplace.jsp & speccs.Surety Engine</div>
+            </div>
+        </div>
+
+        <form th:action="@{/loans/surety-replace/request}" method="post" style="background: rgba(15, 23, 42, 0.4); padding: 20px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 28px;">
+            <h4 style="color: var(--primary); margin-bottom: 14px; font-size: 0.95rem;">Submit New Replacement Application</h4>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Active Loan Account No *</label>
+                    <input type="text" name="loanAccountNo" placeholder="e.g. LTL-10001" required>
+                </div>
+                <div class="form-group">
+                    <label>Current Surety Member Code (To Remove) *</label>
+                    <input type="text" name="oldSuretyMemberCode" placeholder="e.g. MEM-1002" required list="memberList">
+                </div>
+                <div class="form-group">
+                    <label>Proposed New Surety Member Code *</label>
+                    <input type="text" name="newSuretyMemberCode" placeholder="e.g. MEM-1003" required list="memberList">
+                </div>
+                <div class="form-group">
+                    <label>Reason for Replacement *</label>
+                    <input type="text" name="reason" placeholder="e.g. Member Resignation, Mutual Transfer" required>
+                </div>
+            </div>
+
+            <datalist id="memberList">
+                <option th:each="m : ${activeMembers}" th:value="${m.memberCode}" th:text="${m.fullName} + ' (' + ${m.activeSuretyCount} + '/3 guarantees)'"></option>
+            </datalist>
+
+            <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Submit Replacement Request</button>
+        </form>
+
+        <h4 style="color: var(--text-main); margin-bottom: 14px;">Pending Replacement Requests</h4>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                <tr>
+                    <th>Loan No</th>
+                    <th>Borrower</th>
+                    <th>Old Guarantor</th>
+                    <th>New Guarantor</th>
+                    <th>Reason</th>
+                    <th>Request Date</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="p : ${pendingReplacements}">
+                    <td><strong th:text="${p.loanAccountNo}" style="color: var(--primary);">LTL-10001</strong></td>
+                    <td th:text="${p.borrowerName}">Borrower</td>
+                    <td th:text="${p.oldSuretyName} + ' (' + ${p.oldSuretyMemberCode} + ')'">Old</td>
+                    <td th:text="${p.newSuretyName} + ' (' + ${p.newSuretyMemberCode} + ')'" style="color: #34d399;">New</td>
+                    <td th:text="${p.reasonForReplacement}">Reason</td>
+                    <td th:text="${p.requestDate}">Date</td>
+                    <td><span class="badge badge-warning" th:text="${p.status}">PENDING</span></td>
+                    <td>
+                        <form th:action="@{'/loans/surety-replace/approve/' + ${p.id}}" method="post" style="display: inline;">
+                            <button type="submit" class="btn btn-success btn-sm">Approve Swap</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:if="${pendingReplacements.isEmpty()}">
+                    <td colspan="8" style="text-align: center; color: var(--text-dim); padding: 20px;">No pending surety replacement requests.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

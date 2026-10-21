@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: main('Loan Facility Details', ~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <!-- Loan Header Card -->
+    <div class="card">
+        <div class="card-header">
+            <div>
+                <h3 th:text="${loan.loanAccountNo} + ' — ' + ${loan.loanPurpose}" style="color: var(--text-main); font-size: 1.4rem;">Loan Details</h3>
+                <span th:text="${loan.memberName} + ' (' + ${loan.memberCode} + ')'" style="color: var(--primary); font-weight: 700;">Member</span> |
+                <span th:text="${loan.loanType} + ' Product'" style="color: var(--text-dim);">Product</span>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <a th:href="@{'/loans/pdf/' + ${loan.loanAccountNo}}" class="btn btn-secondary btn-sm">📄 Sanction Order PDF</a>
+                <a th:if="${loan.status == 'APPLIED'}" href="#approveModal" class="btn btn-primary btn-sm">Approve Loan</a>
+                <a th:if="${loan.status == 'APPROVED'}" href="#disburseModal" class="btn btn-success btn-sm">Disburse Funds</a>
+                <a th:if="${loan.status == 'ACTIVE'}" th:href="@{'/loans/repay/' + ${loan.loanAccountNo}}" class="btn btn-primary btn-sm">Record Repayment</a>
+            </div>
+        </div>
+
+        <div class="grid-stats" style="margin-bottom: 0;">
+            <div style="background: rgba(15, 23, 42, 0.4); padding: 14px; border-radius: var(--radius-sm);">
+                <div class="stat-label">Sanction Amount</div>
+                <div class="stat-value" th:text="'₹' + ${loan.sanctionAmount}">₹0.00</div>
+                <div class="stat-sub">Tenure: <span th:text="${loan.tenureMonths}">0</span> Months</div>
+            </div>
+            <div style="background: rgba(15, 23, 42, 0.4); padding: 14px; border-radius: var(--radius-sm);">
+                <div class="stat-label">Monthly EMI</div>
+                <div class="stat-value" th:text="'₹' + ${loan.monthlyInstallment}" style="color: var(--primary);">₹0.00</div>
+                <div class="stat-sub">Rate: <span th:text="${loan.interestRate} + '%'">0%</span> p.a.</div>
+            </div>
+            <div style="background: rgba(15, 23, 42, 0.4); padding: 14px; border-radius: var(--radius-sm);">
+                <div class="stat-label">Outstanding Principal</div>
+                <div class="stat-value" th:text="'₹' + ${loan.outstandingPrincipal}" style="color: #f87171;">₹0.00</div>
+                <div class="stat-sub">Repaid: <span th:text="'₹' + ${loan.totalPrincipalRepaid}">₹0</span></div>
+            </div>
+            <div style="background: rgba(15, 23, 42, 0.4); padding: 14px; border-radius: var(--radius-sm);">
+                <div class="stat-label">Account Status</div>
+                <div class="stat-value" style="font-size: 1.25rem;">
+                    <span th:class="'badge ' + (${loan.status == 'ACTIVE'} ? 'badge-success' : (${loan.status == 'APPLIED'} ? 'badge-warning' : 'badge-danger'))"
+                          th:text="${loan.status}">STATUS</span>
+                </div>
+                <div class="stat-sub">Recovery Start: <span th:text="${loan.recoveryStartDate}">-</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sureties Card -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">Guarantor Sureties</div>
+            <a th:href="@{/loans/surety-replace}" class="btn btn-secondary btn-sm">🔄 Replace Surety</a>
+        </div>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                <tr>
+                    <th>Surety Member Code</th>
+                    <th>Guarantor Full Name</th>
+                    <th>Employee ID</th>
+                    <th>Basic Salary</th>
+                    <th>Status</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="s : ${loan.sureties}">
+                    <td><strong th:text="${s.suretyMemberCode}" style="color: var(--primary);">MEM-1002</strong></td>
+                    <td th:text="${s.suretyMemberName}">Name</td>
+                    <td th:text="${s.suretyEmployeeCode}">EMP-123</td>
+                    <td th:text="'₹' + ${s.suretyBasicPay}">₹0.00</td>
+                    <td><span class="badge badge-success" th:text="${s.status}">CONFIRMED</span></td>
+                </tr>
+                <tr th:if="${loan.sureties.isEmpty()}">
+                    <td colspan="5" style="text-align: center; color: var(--text-dim); padding: 20px;">No sureties linked.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Loan Transactions / Repayment Ledger -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">Repayment & Transaction Ledger</div>
+        </div>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Transaction Type</th>
+                    <th>Mode</th>
+                    <th>Principal Amount</th>
+                    <th>Interest Amount</th>
+                    <th>Total Repaid</th>
+                    <th>Principal Balance</th>
+                    <th>Receipt / Ref</th>
+                    <th>Remarks</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="t : ${transactions}">
+                    <td th:text="${t.txnDate}">Date</td>
+                    <td><span class="badge badge-info" th:text="${t.txnType}">REPAYMENT</span></td>
+                    <td th:text="${t.paymentMode}">CASH</td>
+                    <td th:text="'₹' + ${t.principalAmount}">₹0.00</td>
+                    <td th:text="'₹' + ${t.interestAmount}">₹0.00</td>
+                    <td th:text="'₹' + ${t.totalAmount}" style="font-weight: 700; color: #34d399;">₹0.00</td>
+                    <td th:text="'₹' + ${t.balancePrincipalAfterTxn}">₹0.00</td>
+                    <td th:text="${t.receiptNo != null ? t.receiptNo : t.voucherNo}">-</td>
+                    <td th:text="${t.remarks}">Remarks</td>
+                </tr>
+                <tr th:if="${transactions.isEmpty()}">
+                    <td colspan="9" style="text-align: center; color: var(--text-dim); padding: 20px;">No transactions yet.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pure CSS Modals (Zero-JS via :target) -->
+    <!-- Approve Modal -->
+    <div id="approveModal" class="modal-overlay">
+        <div class="modal-box">
+            <a href="#" class="modal-close">&times;</a>
+            <h3 style="margin-bottom: 12px; color: var(--text-main);">Approve Loan Application</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
+                Are you sure you want to approve this loan application for <strong th:text="${loan.memberName}">Member</strong>
+                for the amount of <strong th:text="'₹' + ${loan.sanctionAmount}">₹0</strong>?
+            </p>
+            <form th:action="@{'/loans/approve/' + ${loan.loanAccountNo}}" method="post">
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <a href="#" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Confirm Approval</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Disburse Modal -->
+    <div id="disburseModal" class="modal-overlay">
+        <div class="modal-box">
+            <a href="#" class="modal-close">&times;</a>
+            <h3 style="margin-bottom: 12px; color: var(--text-main);">Disburse Loan Funds</h3>
+            <form th:action="@{'/loans/disburse/' + ${loan.loanAccountNo}}" method="post">
+                <div class="form-group">
+                    <label>Disbursement Channel</label>
+                    <select name="paymentMode">
+                        <option value="BANK_TRANSFER">Bank Transfer (NEFT/RTGS)</option>
+                        <option value="CHEQUE">Society Cheque</option>
+                        <option value="CASH">Cash Vault</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Cheque / UTR / Transaction Ref No</label>
+                    <input type="text" name="chequeOrRefNo" placeholder="e.g. UTR-SBIN987123" required>
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                    <a href="#" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-success">Execute Disbursement</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

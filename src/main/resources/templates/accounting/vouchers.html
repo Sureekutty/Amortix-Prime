@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: main('Double-Entry Vouchers', ~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">Vouchers & Transaction Journal</div>
+            <a th:href="@{/accounting/voucher/new}" class="btn btn-primary btn-sm">➕ Post New Voucher</a>
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-bottom: 20px;">
+            <a th:href="@{/accounting/vouchers}" th:class="'btn btn-sm ' + (${currentType == null} ? 'btn-primary' : 'btn-secondary')">All Vouchers</a>
+            <a th:href="@{/accounting/vouchers(type='RECEIPT')}" th:class="'btn btn-sm ' + (${currentType == 'RECEIPT'} ? 'btn-primary' : 'btn-secondary')">Receipts</a>
+            <a th:href="@{/accounting/vouchers(type='PAYMENT')}" th:class="'btn btn-sm ' + (${currentType == 'PAYMENT'} ? 'btn-primary' : 'btn-secondary')">Payments</a>
+            <a th:href="@{/accounting/vouchers(type='JOURNAL_VOUCHER')}" th:class="'btn btn-sm ' + (${currentType == 'JOURNAL_VOUCHER'} ? 'btn-primary' : 'btn-secondary')">Journal Vouchers (JV)</a>
+        </div>
+
+        <div class="table-responsive">
+            <table>
+                <thead>
+                <tr>
+                    <th>Voucher Ref</th>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Category</th>
+                    <th>Member</th>
+                    <th>Payment Mode</th>
+                    <th>Narration</th>
+                    <th>Amount (INR)</th>
+                    <th>Status</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="v : ${vouchersPage.content}">
+                    <td><strong th:text="${v.voucherNo}" style="color: var(--primary);">RCP-1001</strong></td>
+                    <td th:text="${v.voucherDate}">Date</td>
+                    <td>
+                        <span th:class="'badge ' + (${v.voucherType == 'RECEIPT'} ? 'badge-success' : (${v.voucherType == 'PAYMENT'} ? 'badge-danger' : 'badge-info'))"
+                              th:text="${v.voucherType}">RECEIPT</span>
+                    </td>
+                    <td th:text="${v.category}">Category</td>
+                    <td th:text="${v.memberCode != null ? v.memberCode : '-'}">-</td>
+                    <td th:text="${v.paymentMode}">CASH</td>
+                    <td th:text="${v.narration}">Narration</td>
+                    <td th:text="'₹' + ${v.amount}" style="font-weight: 700;">₹0.00</td>
+                    <td><span class="badge badge-success" th:text="${v.status}">POSTED</span></td>
+                </tr>
+                <tr th:if="${vouchersPage.empty}">
+                    <td colspan="9" style="text-align: center; color: var(--text-dim); padding: 30px;">No vouchers recorded.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" th:if="${vouchersPage.totalPages > 1}">
+            <a th:if="${vouchersPage.hasPrevious()}"
+               th:href="@{/accounting/vouchers(page=${vouchersPage.number - 1}, type=${currentType})}" class="page-item">&laquo; Prev</a>
+            <span class="page-item active" th:text="${vouchersPage.number + 1}">1</span>
+            <a th:if="${vouchersPage.hasNext()}"
+               th:href="@{/accounting/vouchers(page=${vouchersPage.number + 1}, type=${currentType})}" class="page-item">Next &raquo;</a>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

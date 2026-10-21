@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In — AMORTIX | PRIME</title>
+    <link rel="stylesheet" th:href="@{/css/amortix-theme.css}">
+    <style>
+        .login-page {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: radial-gradient(circle at top center, #1e293b 0%, #0b0f19 75%);
+            padding: 20px;
+        }
+        .login-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 36px;
+            max-width: 440px;
+            width: 100%;
+            box-shadow: var(--shadow-lg);
+        }
+        .login-brand {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        .demo-credentials {
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px dashed var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 12px 16px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 24px;
+        }
+        .demo-credentials code {
+            color: var(--primary);
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body class="login-page">
+
+<div class="login-card">
+    <div class="login-brand">
+        <div class="brand-logo" style="font-size: 1.6rem; letter-spacing: 3px;">AMORTIX</div>
+        <div class="brand-sub">Cooperative Credit & Core Ledger Architecture</div>
+    </div>
+
+    <!-- Alert notifications -->
+    <div th:if="${errorMessage}" class="alert alert-danger" style="margin-bottom: 20px;">
+        <span th:text="${errorMessage}">Invalid credentials</span>
+    </div>
+    <div th:if="${infoMessage}" class="alert alert-info" style="margin-bottom: 20px;">
+        <span th:text="${infoMessage}">Logged out</span>
+    </div>
+
+    <form th:action="@{/login}" method="post">
+        <div class="form-group">
+            <label for="username">Operator / Username</label>
+            <input type="text" id="username" name="username" placeholder="Enter username (e.g. admin)" required autofocus>
+        </div>
+
+        <div class="form-group" style="margin-top: 14px;">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" placeholder="••••••••" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 24px; padding: 12px;">
+            Authenticate & Access Core
+        </button>
+    </form>
+
+    <div class="demo-credentials">
+        <div style="font-weight: 700; color: var(--text-main); margin-bottom: 6px;">Demo Access Passwords:</div>
+        <div>Admin: <code>admin</code> / <code>admin123</code></div>
+        <div>Staff: <code>staff</code> / <code>staff123</code></div>
+        <div>Member: <code>member</code> / <code>member123</code></div>
+    </div>
+</div>
+
+</body>
+</html>

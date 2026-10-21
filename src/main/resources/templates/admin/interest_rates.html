@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: main('Master Interest Rates', ~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <div class="card">
+        <div class="card-header">
+            <div>
+                <div class="card-title">Dynamic Product Interest Rates</div>
+                <div style="font-size: 0.82rem; color: var(--text-dim);">Legacy speccs.Interest Master</div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table>
+                <thead>
+                <tr>
+                    <th>Product Code</th>
+                    <th>Product Title</th>
+                    <th>Classification</th>
+                    <th>Tenure Range</th>
+                    <th>Calculation Logic</th>
+                    <th>Annual Rate (%)</th>
+                    <th>Update Rate</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="r : ${rates}">
+                    <td><strong th:text="${r.productCode}" style="color: var(--primary);">LTL</strong></td>
+                    <td th:text="${r.productName}">Long Term Loan</td>
+                    <td><span class="badge badge-info" th:text="${r.productType}">LOAN</span></td>
+                    <td th:text="${r.minTenureMonths} + ' - ' + ${r.maxTenureMonths} + ' Mos'">12 - 120 Mos</td>
+                    <td th:text="${r.calculationMethod}">REDUCING_BALANCE</td>
+                    <td style="font-weight: 700; color: #34d399;" th:text="${r.interestRate} + '%'">9.0%</td>
+                    <td>
+                        <form th:action="@{/admin/interest-rates/update}" method="post" style="display: flex; gap: 8px;">
+                            <input type="hidden" name="id" th:value="${r.id}">
+                            <input type="number" step="0.1" name="interestRate" th:value="${r.interestRate}" style="width: 90px; padding: 4px 8px;">
+                            <button type="submit" class="btn btn-secondary btn-sm">Update</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

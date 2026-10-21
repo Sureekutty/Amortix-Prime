@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: main('Day Book Balancing', ~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <div class="card">
+        <div class="card-header">
+            <div>
+                <h3 style="color: var(--text-main); font-size: 1.4rem;">Daily Accounts Processing (Day Book)</h3>
+                <div style="font-size: 0.82rem; color: var(--text-dim);">Legacy speccs.DailyAccountsProcessing Engine</div>
+            </div>
+            <div>
+                <span th:class="'badge ' + (${summary.dayStatus == 'CLOSED'} ? 'badge-danger' : 'badge-success')"
+                      th:text="${summary.dayStatus}">OPEN</span>
+                <a th:if="${summary.dayStatus == 'OPEN'}" href="#closeDayModal" class="btn btn-danger btn-sm" style="margin-left: 10px;">🔒 Close & Lock Day Book</a>
+            </div>
+        </div>
+
+        <!-- Date Filter Form -->
+        <form th:action="@{/accounting/daybook}" method="get" style="display: flex; gap: 12px; align-items: flex-end; margin-bottom: 24px;">
+            <div class="form-group" style="margin-bottom: 0;">
+                <label>Select Accounting Date</label>
+                <input type="date" name="date" th:value="${queryDate}" style="width: 180px;">
+            </div>
+            <button type="submit" class="btn btn-secondary">Load Day Book</button>
+        </form>
+
+        <!-- Cash & Bank Ledger Positions -->
+        <div class="grid-stats">
+            <div style="background: rgba(15, 23, 42, 0.4); padding: 14px; border-radius: var(--radius-sm);">
+                <div class="stat-label">Opening Cash Balance</div>
+                <div class="stat-value" th:text="'₹' + ${summary.openingCash}">₹0.00</div>
+                <div class="stat-sub">Vault Starting Balance</div>
+            </div>
+
+            <div style="background: rgba(15, 23, 42, 0.4); padding: 14px; border-radius: var(--radius-sm);">
+                <div class="stat-label">Total Cash Receipts</div>
+                <div class="stat-value" th:text="'₹' + ${summary.totalCashReceipts}" style="color: #34d399;">₹0.00</div>
+                <div class="stat-sub">Cash Inflows Today</div>
+            </div>
+
+            <div style="background: rgba(15, 23, 42, 0.4); padding: 14px; border-radius: var(--radius-sm);">
+                <div class="stat-label">Total Cash Disbursements</div>
+                <div class="stat-value" th:text="'₹' + ${summary.totalCashPayments}" style="color: #f87171;">₹0.00</div>
+                <div class="stat-sub">Cash Outflows Today</div>
+            </div>
+
+            <div style="background: rgba(15, 23, 42, 0.4); padding: 14px; border-radius: var(--radius-sm);">
+                <div class="stat-label">Calculated Closing Cash</div>
+                <div class="stat-value" th:text="'₹' + ${summary.closingCash}" style="color: var(--primary);">₹0.00</div>
+                <div class="stat-sub">Vault Ending Cash</div>
+            </div>
+        </div>
+
+        <div class="grid-stats" style="margin-bottom: 24px;">
+            <div style="background: rgba(15, 23, 42, 0.4); padding: 14px; border-radius: var(--radius-sm);">
+                <div class="stat-label">Opening Bank Balance</div>
+                <div class="stat-value" th:text="'₹' + ${summary.openingBank}">₹0.00</div>
+            </div>
+
+            <div style="background: rgba(15, 23, 42, 0.4); padding: 14px; border-radius: var(--radius-sm);">
+                <div class="stat-label">Total Bank Credits</div>
+                <div class="stat-value" th:text="'₹' + ${summary.totalBankReceipts}" style="color: #34d399;">₹0.00</div>
+            </div>
+
+            <div style="background: rgba(15, 23, 42, 0.4); padding: 14px; border-radius: var(--radius-sm);">
+                <div class="stat-label">Total Bank Debits</div>
+                <div class="stat-value" th:text="'₹' + ${summary.totalBankPayments}" style="color: #f87171;">₹0.00</div>
+            </div>
+
+            <div style="background: rgba(15, 23, 42, 0.4); padding: 14px; border-radius: var(--radius-sm);">
+                <div class="stat-label">Calculated Closing Bank</div>
+                <div class="stat-value" th:text="'₹' + ${summary.closingBank}" style="color: var(--primary);">₹0.00</div>
+            </div>
+        </div>
+
+        <!-- Day Book Transactions Table -->
+        <h4 style="color: var(--text-main); margin-bottom: 12px;">Vouchers Posted for <span th:text="${queryDate}">Date</span></h4>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                <tr>
+                    <th>Voucher Ref</th>
+                    <th>Type</th>
+                    <th>Mode</th>
+                    <th>Particulars / Narration</th>
+                    <th>Member Code</th>
+                    <th>Amount (INR)</th>
+                    <th>Prepared By</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="v : ${summary.vouchers}">
+                    <td><strong th:text="${v.voucherNo}" style="color: var(--primary);">RCP-1001</strong></td>
+                    <td>
+                        <span th:class="'badge ' + (${v.voucherType == 'RECEIPT'} ? 'badge-success' : 'badge-danger')"
+                              th:text="${v.voucherType}">RECEIPT</span>
+                    </td>
+                    <td th:text="${v.paymentMode}">CASH</td>
+                    <td th:text="${v.narration}">Narration</td>
+                    <td th:text="${v.memberCode != null ? v.memberCode : '-'}">-</td>
+                    <td th:text="'₹' + ${v.amount}" style="font-weight: 700;">₹0.00</td>
+                    <td th:text="${v.preparedBy}">Officer</td>
+                </tr>
+                <tr th:if="${summary.vouchers.isEmpty()}">
+                    <td colspan="7" style="text-align: center; color: var(--text-dim); padding: 20px;">No vouchers recorded for this date.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Close Day Modal (Zero-JS via :target) -->
+    <div id="closeDayModal" class="modal-overlay">
+        <div class="modal-box">
+            <a href="#" class="modal-close">&times;</a>
+            <h3 style="margin-bottom: 12px; color: var(--danger);">Day End Closing & Cash Vault Lock</h3>
+            <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 16px;">
+                Closing the Day Book will audit and permanently lock all cash receipts and payments for <strong th:text="${queryDate}">Date</strong>.
+                Today's closing cash of <strong th:text="'₹' + ${summary.closingCash}">₹0.00</strong> will become tomorrow's opening balance.
+            </p>
+            <form th:action="@{/accounting/daybook/close}" method="post">
+                <input type="hidden" name="date" th:value="${queryDate}">
+                <div class="form-group">
+                    <label>Closing Verification Remarks</label>
+                    <input type="text" name="remarks" placeholder="Vault cash verified against physical denominations" required>
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                    <a href="#" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-danger">Confirm & Lock Day</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

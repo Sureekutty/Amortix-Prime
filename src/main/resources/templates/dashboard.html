@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: main('Executive Cockpit', ~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <!-- KPI Grid -->
+    <div class="grid-stats">
+        <div class="stat-card">
+            <div class="stat-label">Active Members</div>
+            <div class="stat-value" th:text="${activeMembersCount}">0</div>
+            <div class="stat-sub">Shareholding Co-op Members</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-label">Active Loan Accounts</div>
+            <div class="stat-value" th:text="${activeLoansCount}" style="color: var(--primary);">0</div>
+            <div class="stat-sub">
+                <span th:text="${pendingLoansCount}">0</span> Applications Pending
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-label">Term Deposits</div>
+            <div class="stat-value" th:text="${activeDepositsCount}" style="color: var(--success);">0</div>
+            <div class="stat-sub">Fixed & Recurring Deposits</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-label">Vault Cash In Hand</div>
+            <div class="stat-value" th:text="'₹' + ${cashBalance}">₹0</div>
+            <div class="stat-sub">
+                Day Book Status: <span class="badge badge-success" th:text="${dayStatus}">OPEN</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Operations & Direct Actions -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">Core Operations Quick Launch</div>
+            <div style="font-size: 0.82rem; color: var(--text-dim);" th:text="'Ledger Date: ' + ${currentDate}">Date</div>
+        </div>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+            <a th:href="@{/members/new}" class="btn btn-primary">➕ Enroll Member</a>
+            <a th:href="@{/loans/apply}" class="btn btn-secondary">💳 Apply for Loan</a>
+            <a th:href="@{/deposits/open}" class="btn btn-secondary">🏦 Open Term Deposit</a>
+            <a th:href="@{/recovery}" class="btn btn-secondary">🗓️ Run Monthly Recovery</a>
+            <a th:href="@{/accounting/daybook}" class="btn btn-secondary">📖 Balance Day Book</a>
+            <a th:href="@{/accounting/voucher/new}" class="btn btn-secondary">🧾 Post Double-Entry Voucher</a>
+        </div>
+    </div>
+
+    <!-- Architecture & Compliance Summary -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">Platform Architecture Compliance</div>
+            <span class="badge badge-info">Zero-JS Monolith</span>
+        </div>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 14px;">
+            AMORTIX | PRIME runs on <strong>Java 21 LTS</strong>, <strong>Spring Boot 3</strong>, <strong>Spring Security 6</strong>,
+            and <strong>Spring Data MongoDB</strong>. Every validation, financial ledger rule, and interest calculation is executed
+            exclusively on the server.
+        </p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; font-size: 0.85rem;">
+            <div style="background: rgba(15, 23, 42, 0.6); padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                <strong style="color: var(--primary);">Full Legacy Parity:</strong>
+                <p style="color: var(--text-dim); margin-top: 4px;">Includes 100% of modules from legacy Sybase/JSP: Loans (LTL, EXL, ELG, FDL), Deposits (FXD, RCD, MIS), Monthly Demand Schedules, Day End Closing, and Surety Replacements.</p>
+            </div>
+            <div style="background: rgba(15, 23, 42, 0.6); padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                <strong style="color: var(--success);">MongoDB Core:</strong>
+                <p style="color: var(--text-dim); margin-top: 4px;">Zero impedance mismatch. High performance indexing on member codes, loan account numbers, and daily accounting dates.</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

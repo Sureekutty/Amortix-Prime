@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: main('AGM Resolutions & Polls', ~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <div class="card">
+        <div class="card-header">
+            <div>
+                <div class="card-title">Cooperative AGM Resolutions & Member Voting</div>
+                <div style="font-size: 0.82rem; color: var(--text-dim);">Legacy speccs.savePoll Voting Engine</div>
+            </div>
+        </div>
+
+        <div th:each="p : ${polls}" style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 20px; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                <div>
+                    <h4 th:text="${p.title}" style="color: var(--text-main); font-size: 1.1rem; margin-bottom: 4px;">Poll Title</h4>
+                    <p th:text="${p.description}" style="color: var(--text-muted); font-size: 0.85rem;">Description</p>
+                </div>
+                <span class="badge badge-success">ACTIVE BALLOT</span>
+            </div>
+
+            <!-- Cast Ballot Form -->
+            <form th:action="@{/admin/polls/vote}" method="post" style="margin-top: 16px;">
+                <input type="hidden" name="pollId" th:value="${p.id}">
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
+                    <label th:each="opt : ${p.options}" style="display: flex; align-items: center; gap: 10px; cursor: pointer; color: var(--text-main);">
+                        <input type="radio" name="option" th:value="${opt}" required>
+                        <span th:text="${opt}">Option</span>
+                        <span style="color: var(--text-dim); font-size: 0.75rem;" th:text="'(' + ${p.voteCounts.get(opt)} + ' votes)'"></span>
+                    </label>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm">Cast Official Vote</button>
+            </form>
+        </div>
+
+        <div th:if="${polls.isEmpty()}" style="text-align: center; color: var(--text-dim); padding: 30px;">
+            No active AGM resolution ballots currently open.
+        </div>
+    </div>
+
+</div>
+</body>
+</html>
