@@ -96,6 +96,4 @@ Run the comprehensive test suite verifying financial math formulas, recovery rec
 
 ---
 
-## 📖 Complete Documentation & Learning Encyclopedia
-* **[AMORTIX_PRIME_ENCYCLOPEDIA.md](AMORTIX_PRIME_ENCYCLOPEDIA.md)**: The exhaustive, textbook-grade master guide covering everything from absolute scratch (HTML, CSS, Java 21, Spring Boot 3, Spring Security 6, MongoDB, 47-table legacy audit, formulas, workflows, data dictionary, and 30+ interview questions & answers).
-* **[AMORTIX_PRIME_MASTERCLASS.md](AMORTIX_PRIME_MASTERCLASS.md)**: Architectural overview and system design notes.
+

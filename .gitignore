@@ -34,3 +34,8 @@ build/
 ### OS files ###
 .DS_Store
 Thumbs.db
+
+# Private Study & Learning Notes
+AMORTIX_PRIME_ENCYCLOPEDIA.md
+AMORTIX_PRIME_MASTERCLASS.md
+
