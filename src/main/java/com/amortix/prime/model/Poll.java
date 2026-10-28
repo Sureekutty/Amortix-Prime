@@ -1,8 +1,6 @@
 package com.amortix.prime.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,23 +8,39 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * AGM Resolution and Poll Document.
+ * AGM Resolution and Poll Entity.
  * Corresponds to Amortix savePoll.
  */
-@Document(collection = "society_polls")
+@Entity
+@Table(name = "society_polls")
 public class Poll {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     private String title;
+    @Column(length = 2000)
     private String description;
     private LocalDateTime startDate = LocalDateTime.now();
     private LocalDateTime endDate = LocalDateTime.now().plusDays(7);
     private boolean active = true;
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "poll_options", joinColumns = @JoinColumn(name = "poll_id"))
+    @Column(name = "option_text")
     private List<String> options = new ArrayList<>();
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "poll_vote_counts", joinColumns = @JoinColumn(name = "poll_id"))
+    @MapKeyColumn(name = "option_key")
+    @Column(name = "vote_count")
     private Map<String, Integer> voteCounts = new HashMap<>(); // Option -> Count
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "poll_member_votes", joinColumns = @JoinColumn(name = "poll_id"))
+    @MapKeyColumn(name = "member_code")
+    @Column(name = "chosen_option")
     private Map<String, String> memberVotes = new HashMap<>(); // MemberCode -> Option Chosen
 
     private String createdBy;
