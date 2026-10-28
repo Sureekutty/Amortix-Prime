@@ -1,29 +1,27 @@
 package com.amortix.prime.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 /**
- * Society Master Business Rule Document.
+ * Society Master Business Rule Entity.
  * Corresponds to Amortix Rules.
  */
-@Document(collection = "society_rules")
+@Entity
+@Table(name = "society_rules")
 public class SocietyRule {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Indexed(unique = true)
+    @Column(unique = true, nullable = false)
     private String ruleCode; // e.g. "MAX_LOAN_MULTIPLIER", "MAX_SURETIES_PER_MEMBER", "MIN_SERVICE_MONTHS"
 
     private String ruleName;
     private String ruleCategory; // LOAN, DEPOSIT, MEMBERSHIP, THRIFT
     private String ruleValue; // Stored as string for flexibility (e.g. "10", "3", "500000")
+    @Column(length = 1000)
     private String description;
 
     private boolean active = true;
