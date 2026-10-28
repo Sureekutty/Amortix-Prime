@@ -11,5 +11,5 @@ services:
         value: 8080
       - key: SPRING_PROFILES_ACTIVE
         value: prod
-      - key: MONGODB_URI
-        sync: false # Set this in Render Dashboard pointing to your MongoDB Atlas cluster URI
+      - key: SPRING_DATASOURCE_URL
+        sync: false # Set this in Render Dashboard pointing to your cloud MySQL instance URL

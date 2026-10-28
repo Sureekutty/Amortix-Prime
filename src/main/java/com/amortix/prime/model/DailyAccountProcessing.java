@@ -1,25 +1,24 @@
 package com.amortix.prime.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
-
+import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * Daily Accounts Processing Document (Day Book Master).
+ * Daily Accounts Processing Entity (Day Book Master).
  * Ensures everyday cash and bank balances are reconciled, tallied, and locked.
  * Corresponds to Amortix DailyAccountsProcessing and DailyAccountsProcessing.java.
  */
-@Document(collection = "daily_accounts_processing")
+@Entity
+@Table(name = "daily_accounts_processing")
 public class DailyAccountProcessing {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Indexed(unique = true)
+    @Column(unique = true, nullable = false)
     private LocalDate processingDate; // Day book date
 
     private BigDecimal openingCashBalance = BigDecimal.ZERO;
@@ -38,6 +37,7 @@ public class DailyAccountProcessing {
     private String dayStatus = "OPEN";
     private String closedBy;
     private LocalDateTime closedTime;
+    @Column(length = 1000)
     private String remarks;
 
     private LocalDateTime createdDate = LocalDateTime.now();

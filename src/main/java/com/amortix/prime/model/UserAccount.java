@@ -1,23 +1,22 @@
 package com.amortix.prime.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
-
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * User Account for Spring Security authentication.
+ * User Account Entity for Spring Security authentication.
  */
-@Document(collection = "user_accounts")
+@Entity
+@Table(name = "user_accounts")
 public class UserAccount {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Indexed(unique = true)
+    @Column(unique = true, nullable = false)
     private String username;
 
     private String password;
@@ -25,7 +24,12 @@ public class UserAccount {
     private String email;
     private String memberCode; // Null for pure admin/staff
     private boolean enabled = true;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_account_roles", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "role")
     private Set<String> roles = new HashSet<>();
+
     private LocalDateTime createdDate = LocalDateTime.now();
 
     public UserAccount() {}

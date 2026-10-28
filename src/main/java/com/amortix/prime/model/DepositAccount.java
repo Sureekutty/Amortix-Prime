@@ -1,28 +1,26 @@
 package com.amortix.prime.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
-
+import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * Deposit Account Document.
+ * Deposit Account Entity.
  * Corresponds to Amortix Deposits, amortix.DepositTransactions, amortix.SP_Calculations.
  * Supports products: FXD (Fixed Deposit), RCD (Recurring Deposit), MIS (Monthly Income Scheme).
  */
-@Document(collection = "deposit_accounts")
+@Entity
+@Table(name = "deposit_accounts")
 public class DepositAccount {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Indexed(unique = true)
+    @Column(unique = true, nullable = false)
     private String depositAccountNo; // e.g. FXD-10001, RCD-20001, MIS-30001
 
-    @Indexed
     private String memberCode;
     private String memberName;
 
@@ -53,6 +51,7 @@ public class DepositAccount {
     private String payoutMode = "BANK_TRANSFER"; // CASH, BANK_TRANSFER
     private String payoutVoucherNo;
 
+    @Column(length = 1000)
     private String remarks;
     private LocalDateTime createdDate = LocalDateTime.now();
     private LocalDateTime updatedDate = LocalDateTime.now();

@@ -3,14 +3,14 @@ package com.amortix.prime.repository;
 import com.amortix.prime.model.LoanTransaction;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
 
 @Repository
-public interface LoanTransactionRepository extends MongoRepository<LoanTransaction, String> {
+public interface LoanTransactionRepository extends JpaRepository<LoanTransaction, String> {
     List<LoanTransaction> findByLoanAccountNoOrderByTxnDateDesc(String loanAccountNo);
     List<LoanTransaction> findByMemberCodeOrderByTxnDateDesc(String memberCode);
     List<LoanTransaction> findByTxnDateBetween(LocalDate from, LocalDate to);
