@@ -1,27 +1,23 @@
 package com.amortix.prime.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
-
+import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * Loan Transaction Document.
+ * Loan Transaction Entity.
  * Corresponds to Amortix LoanTransactions.
  */
-@Document(collection = "loan_transactions")
+@Entity
+@Table(name = "loan_transactions")
 public class LoanTransaction {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Indexed
     private String loanAccountNo;
-
-    @Indexed
     private String memberCode;
 
     private LocalDate txnDate = LocalDate.now();
@@ -38,6 +34,7 @@ public class LoanTransaction {
     private String paymentMode = "PAYROLL_DEDUCTION"; // PAYROLL_DEDUCTION, CASH, BANK_TRANSFER, CHEQUE
     private String receiptNo;
     private String voucherNo;
+    @Column(length = 1000)
     private String remarks;
     private String createdBy;
     private LocalDateTime createdDate = LocalDateTime.now();

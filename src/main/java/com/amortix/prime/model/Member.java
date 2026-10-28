@@ -1,9 +1,6 @@
 package com.amortix.prime.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
-
+import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -11,19 +8,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Core Cooperative Member Master Document.
+ * Core Cooperative Member Master Entity.
  * Corresponds to Amortix Members, amortix.MembersBasic, amortix.MemAddress, amortix.Nominee
  */
-@Document(collection = "members")
+@Entity
+@Table(name = "members")
 public class Member {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Indexed(unique = true)
+    @Column(unique = true, nullable = false)
     private String memberCode; // e.g. MEM-1001
 
-    @Indexed
     private String employeeCode; // e.g. EMP-9821
     private String fullName;
     private String fatherOrSpouseName;
@@ -52,12 +50,17 @@ public class Member {
     private int activeSuretyCount = 0; // Number of active loans guaranteed by this member
 
     // Addresses (Present, Permanent, Office)
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "member_addresses", joinColumns = @JoinColumn(name = "member_id"))
     private List<Address> addresses = new ArrayList<>();
 
     // Nominees
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "member_nominees", joinColumns = @JoinColumn(name = "member_id"))
     private List<Nominee> nominees = new ArrayList<>();
 
     // Bank Account details for loan disbursement / dividend / settlements
+    @Embedded
     private BankDetail bankDetail = new BankDetail();
 
     private LocalDateTime createdDate = LocalDateTime.now();
@@ -66,6 +69,7 @@ public class Member {
     public Member() {}
 
     // Embedded Domain Value Objects
+    @Embeddable
     public static class Address {
         private String addressType; // PRESENT, PERMANENT, OFFICE
         private String addressLine1;
@@ -105,6 +109,7 @@ public class Member {
         public void setEmail(String email) { this.email = email; }
     }
 
+    @Embeddable
     public static class Nominee {
         private String nomineeName;
         private String relationship;
@@ -136,6 +141,7 @@ public class Member {
         public void setGuardianRelation(String guardianRelation) { this.guardianRelation = guardianRelation; }
     }
 
+    @Embeddable
     public static class BankDetail {
         private String bankName;
         private String branch;

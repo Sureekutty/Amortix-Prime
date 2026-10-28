@@ -1,32 +1,30 @@
 package com.amortix.prime.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
-
+import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * Voucher Document.
+ * Voucher Entity.
  * Unified double-entry transaction record supporting Receipts, Payments, Journal Vouchers (JV),
  * and Miscellaneous society expenses.
  * Corresponds to Amortix Receipts, amortix.Payments, amortix.PayVouchers, amortix.MiscellaneousPayment.
  */
-@Document(collection = "vouchers")
+@Entity
+@Table(name = "vouchers")
 public class Voucher {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Indexed(unique = true)
+    @Column(unique = true, nullable = false)
     private String voucherNo; // e.g. RCP-2026-0001, PMT-2026-0001, JV-2026-0001
 
     private String voucherType; // RECEIPT, PAYMENT, JOURNAL_VOUCHER, MISC_EXPENSE
     private LocalDate voucherDate = LocalDate.now();
 
-    @Indexed
     private String memberCode; // Optional if transaction is member-related
     private String memberName;
 
@@ -42,6 +40,7 @@ public class Voucher {
     private String instrumentNo; // Cheque number, UTR number
     private LocalDate instrumentDate;
 
+    @Column(length = 1000)
     private String narration; // Purpose / Particulars
     private String category; // LOAN_DISBURSEMENT, LOAN_RECOVERY, DEPOSIT_OPENING, THRIFT_CREDIT, ADMIN_EXPENSE
 
