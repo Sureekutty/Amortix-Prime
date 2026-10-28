@@ -1,27 +1,23 @@
 package com.amortix.prime.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
-
+import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * Deposit Transaction Document.
+ * Deposit Transaction Entity.
  * Corresponds to Amortix DepositTransactions.
  */
-@Document(collection = "deposit_transactions")
+@Entity
+@Table(name = "deposit_transactions")
 public class DepositTransaction {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Indexed
     private String depositAccountNo;
-
-    @Indexed
     private String memberCode;
 
     private LocalDate txnDate = LocalDate.now();
@@ -29,6 +25,7 @@ public class DepositTransaction {
     private BigDecimal amount = BigDecimal.ZERO;
     private BigDecimal balanceAfterTxn = BigDecimal.ZERO;
     private String voucherOrReceiptNo;
+    @Column(length = 1000)
     private String remarks;
     private String createdBy;
     private LocalDateTime createdDate = LocalDateTime.now();

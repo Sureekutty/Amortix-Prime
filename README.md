@@ -2,7 +2,7 @@
 ### Cooperative Credit & Core Ledger Architecture
 [![Java 21](https://img.shields.io/badge/Java-21%20LTS-orange.svg)](https://www.oracle.com/java/)
 [![Spring Boot 3](https://img.shields.io/badge/Spring%20Boot-3.3-brightgreen.svg)](https://spring.io/projects/spring-boot)
-[![MongoDB](https://img.shields.io/badge/MongoDB-NoSQL-forestgreen.svg)](https://www.mongodb.com/)
+[![MySQL 8/9](https://img.shields.io/badge/MySQL-8.x%20%2F%209.x-blue.svg)](https://www.mysql.com/)
 [![Spring Security 6](https://img.shields.io/badge/Security-Spring%20Security%206-blue.svg)](https://spring.io/projects/spring-security)
 [![Zero-JS Frontend](https://img.shields.io/badge/Frontend-Pure%20HTML5%20%2B%20CSS3%20(Zero--JS)-informational.svg)]()
 [![Production Ready](https://img.shields.io/badge/Deployment-Docker%20%2F%20Render%20%2F%20Railway-blueviolet.svg)]()
@@ -13,7 +13,7 @@
 
 ## ⚡ The Zero-JavaScript Monolithic Paradigm
 Unlike typical modern apps that depend on fragile client-side JavaScript frameworks, AMORTIX | PRIME is engineered as a **100% Server-Side Rendered (SSR) Monolith**:
-* **Backend:** Java 21 LTS, Spring Boot 3, Spring Data MongoDB, Spring Security 6.
+* **Backend:** Java 21 LTS, Spring Boot 3, Spring Data JPA / MySQL, Spring Security 6.
 * **Frontend:** Semantic HTML5 templates rendered server-side via Thymeleaf, styled with custom CSS3 custom properties (variables), Flexbox, and CSS Grid.
 * **Pure CSS Interactivity:** Modals via CSS `:target`, accordions via native HTML5 `<details>`, and pure server-side form validations.
 * **Zero JavaScript:** Immune to client-side XSS vulnerabilities, zero npm dependency bloat, and unified server runtime.
@@ -59,7 +59,7 @@ AMORTIX | PRIME restores and enhances every module from the legacy Sybase/JSP sy
 
 ### Prerequisites
 * Java 21 LTS installed
-* MongoDB running locally on port `27017` (or MongoDB Atlas connection URI)
+* MySQL 8.x / 9.x running locally on port `3306` (or cloud MySQL connection URL)
 
 ### Local Launch
 ```bash
@@ -91,8 +91,8 @@ Run the comprehensive test suite verifying financial math formulas, recovery rec
 ---
 
 ## ☁️ Cloud Deployment (Render / Railway / Docker)
-* **Docker Compose:** `docker-compose up --build` launches both MongoDB and the application container.
-* **Render.com:** Uses `render.yaml` and multi-stage `Dockerfile`. Set `MONGODB_URI` pointing to your cloud MongoDB Atlas cluster.
+* **Docker Compose:** `docker-compose up --build` launches both MySQL and the application container.
+* **Render.com:** Uses `render.yaml` and multi-stage `Dockerfile`. Set `SPRING_DATASOURCE_URL` pointing to your cloud MySQL instance.
 
 ---
 

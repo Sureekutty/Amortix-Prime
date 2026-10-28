@@ -1,9 +1,6 @@
 package com.amortix.prime.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
-
+import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -12,16 +9,15 @@ import java.time.LocalDateTime;
  * Replaces a guarantor on an active loan with another eligible member.
  * Corresponds to legacy suretyReplace.jsp and amortix.Surety updates.
  */
-@Document(collection = "surety_replacements")
+@Entity
+@Table(name = "surety_replacements")
 public class SuretyReplacement {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Indexed
     private String loanAccountNo;
-
-    @Indexed
     private String borrowerMemberCode;
     private String borrowerName;
 
@@ -38,6 +34,7 @@ public class SuretyReplacement {
     private String status = "PENDING";
     private String approvedBy;
     private LocalDate approvalDate;
+    @Column(length = 1000)
     private String remarks;
 
     private LocalDateTime createdDate = LocalDateTime.now();

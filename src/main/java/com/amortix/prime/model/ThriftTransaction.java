@@ -1,24 +1,22 @@
 package com.amortix.prime.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
-
+import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * Thrift Transaction Document.
+ * Thrift Transaction Entity.
  * Corresponds to Amortix ThriftTransactions, amortix.ThriftInterestAmnt, amortix.sp_ThriftProcessUpload.
  */
-@Document(collection = "thrift_transactions")
+@Entity
+@Table(name = "thrift_transactions")
 public class ThriftTransaction {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Indexed
     private String memberCode;
     private String memberName;
 
@@ -29,6 +27,7 @@ public class ThriftTransaction {
 
     private String recoveryRunId; // Associated monthly recovery run if collected via payroll
     private String voucherOrReceiptNo;
+    @Column(length = 1000)
     private String remarks;
     private String createdBy;
     private LocalDateTime createdDate = LocalDateTime.now();

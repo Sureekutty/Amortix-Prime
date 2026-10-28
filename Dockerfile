@@ -31,7 +31,7 @@ COPY --from=builder /workspace/target/*.jar app.jar
 # Environment defaults (override in cloud portal)
 ENV PORT=8080
 ENV SPRING_PROFILES_ACTIVE=prod
-ENV MONGODB_URI=mongodb://localhost:27017/amortix_prime_db
+ENV SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/amortix_prime_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
 
 EXPOSE 8080
 
