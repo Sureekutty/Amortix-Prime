@@ -1,9 +1,6 @@
 package com.amortix.prime.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
-
+import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -11,18 +8,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Monthly Recovery Run Document.
+ * Monthly Recovery Run Entity.
  * Core Cooperative Engine for generating monthly payroll deduction demand schedules
  * and reconciling payroll response files.
  * Corresponds to Amortix MonthlyProcess, amortix.MonthlyResponse, amortix.ProcessMonth.
  */
-@Document(collection = "monthly_recovery_runs")
+@Entity
+@Table(name = "monthly_recovery_runs")
 public class MonthlyRecoveryRun {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Indexed(unique = true)
+    @Column(unique = true, nullable = false)
     private String runCode; // e.g. REC-2026-10
 
     private int month; // 1 to 12
@@ -46,7 +45,12 @@ public class MonthlyRecoveryRun {
     private BigDecimal totalActualRecovered = BigDecimal.ZERO;
     private BigDecimal totalVarianceAmount = BigDecimal.ZERO; // Under/Over deductions
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "recovery_run_items", joinColumns = @JoinColumn(name = "recovery_run_id"))
     private List<RecoveryItem> items = new ArrayList<>();
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "recovery_run_discrepancies", joinColumns = @JoinColumn(name = "recovery_run_id"))
     private List<WrongPaymentRecord> discrepancies = new ArrayList<>();
 
     private String generatedBy;
@@ -55,6 +59,7 @@ public class MonthlyRecoveryRun {
 
     public MonthlyRecoveryRun() {}
 
+    @Embeddable
     public static class RecoveryItem {
         private String memberCode;
         private String memberName;
@@ -105,6 +110,7 @@ public class MonthlyRecoveryRun {
         public void setDiscrepancyReason(String discrepancyReason) { this.discrepancyReason = discrepancyReason; }
     }
 
+    @Embeddable
     public static class WrongPaymentRecord {
         private String memberCode;
         private String employeeCode;

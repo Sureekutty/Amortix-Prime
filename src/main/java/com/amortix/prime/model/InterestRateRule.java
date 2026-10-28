@@ -1,24 +1,22 @@
 package com.amortix.prime.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
-
+import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * Interest Rate Rule Master Document.
+ * Interest Rate Rule Master Entity.
  * Corresponds to Amortix Interest.
  * Configures interest rates for all products: LTL, EXL, ELG, FDL, FXD, RCD, THRIFT.
  */
-@Document(collection = "interest_rate_rules")
+@Entity
+@Table(name = "interest_rate_rules")
 public class InterestRateRule {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Indexed
     private String productCode; // LTL, EXL, ELG, FDL, FXD, RCD, THRIFT, FXP (Fixed Deposit Penalty)
 
     private String productName;
