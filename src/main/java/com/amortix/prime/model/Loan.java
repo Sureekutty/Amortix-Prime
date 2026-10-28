@@ -1,9 +1,6 @@
 package com.amortix.prime.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
-
+import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -11,20 +8,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Loan Document.
+ * Loan Entity.
  * Corresponds to Amortix Loans, amortix.Loanstatus, amortix.Surety.
  * Supports products: LTL, EXL, ELG, FDL.
  */
-@Document(collection = "loans")
+@Entity
+@Table(name = "loans")
 public class Loan {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Indexed(unique = true)
+    @Column(unique = true, nullable = false)
     private String loanAccountNo; // e.g. LTL-10001, EXL-20001, ELG-30001, FDL-40001
 
-    @Indexed
     private String memberCode;
     private String memberName;
     private String employeeCode;
@@ -54,6 +52,8 @@ public class Loan {
     private String status = "APPLIED";
 
     // Surety details (Up to 3 guarantors)
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "loan_sureties", joinColumns = @JoinColumn(name = "loan_id"))
     private List<LoanSurety> sureties = new ArrayList<>();
 
     // Collateral (used especially for FDL - Fixed Deposit Loan)
@@ -64,6 +64,7 @@ public class Loan {
     private String disbursementMode = "BANK_TRANSFER"; // CASH, CHEQUE, BANK_TRANSFER
     private String chequeOrRefNo;
     private String sanctionedBy;
+    @Column(length = 1000)
     private String remarks;
 
     private LocalDateTime createdDate = LocalDateTime.now();
@@ -71,6 +72,7 @@ public class Loan {
 
     public Loan() {}
 
+    @Embeddable
     public static class LoanSurety {
         private String suretyMemberCode;
         private String suretyMemberName;

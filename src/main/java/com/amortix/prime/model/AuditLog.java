@@ -1,27 +1,27 @@
 package com.amortix.prime.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
-
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 /**
- * Audit Log Document.
+ * Audit Log Entity.
  * Corresponds to Amortix TBSC_EVENTS and amortix.TBSC_EXCEPTIONLOG.
  */
-@Document(collection = "audit_logs")
+@Entity
+@Table(name = "audit_logs")
 public class AuditLog {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Indexed
+    @Column(name = "username")
     private String username;
 
     private String action; // e.g. MEMBER_CREATED, LOAN_SANCTIONED, SURETY_REPLACED, VOUCHER_POSTED, DAY_CLOSED
     private String entityName;
     private String entityId;
+    @Column(length = 2000)
     private String details;
     private String ipAddress;
 
