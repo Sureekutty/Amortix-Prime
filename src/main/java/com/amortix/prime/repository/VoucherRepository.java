@@ -3,7 +3,7 @@ package com.amortix.prime.repository;
 import com.amortix.prime.model.Voucher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface VoucherRepository extends MongoRepository<Voucher, String> {
+public interface VoucherRepository extends JpaRepository<Voucher, String> {
     Optional<Voucher> findByVoucherNo(String voucherNo);
     List<Voucher> findByVoucherDate(LocalDate date);
     List<Voucher> findByVoucherDateBetween(LocalDate from, LocalDate to);

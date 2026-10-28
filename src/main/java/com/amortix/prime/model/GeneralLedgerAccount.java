@@ -1,24 +1,23 @@
 package com.amortix.prime.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
-
+import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * General Ledger Account Document.
+ * General Ledger Account Entity.
  * Represents Chart of Accounts (Assets, Liabilities, Incomes, Expenses).
  * Corresponds to Amortix SP_Ledger.
  */
-@Document(collection = "ledger_accounts")
+@Entity
+@Table(name = "ledger_accounts")
 public class GeneralLedgerAccount {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Indexed(unique = true)
+    @Column(unique = true, nullable = false)
     private String accountCode; // e.g. 1001, 1002, 2001, 3001, 4001, 5001
 
     private String accountName; // Cash in Hand, SBI Current A/c, Member Loans Asset, Thrift Deposit Liability
