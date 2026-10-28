@@ -34,7 +34,7 @@
             </div>
         </div>
 
-        <!-- Payroll Response File Upload (Legacy speccs.MonthlyResponse) -->
+        <!-- Payroll Response File Upload (Amortix MonthlyResponse) -->
         <div th:if="${run.status != 'RECONCILED'}" style="background: rgba(56, 189, 248, 0.05); border: 1px dashed var(--primary); border-radius: var(--radius-sm); padding: 20px; margin-bottom: 28px;">
             <h4 style="color: var(--primary); margin-bottom: 8px;">Upload Employer Payroll Response File</h4>
             <p style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 14px;">
@@ -49,9 +49,9 @@
             </form>
         </div>
 
-        <!-- Discrepancies / Wrong Payments Table (Legacy speccs.WrongPayment) -->
+        <!-- Discrepancies / Wrong Payments Table (Amortix WrongPayment) -->
         <div th:if="${!run.discrepancies.isEmpty()}" style="margin-bottom: 28px;">
-            <h4 style="color: #f87171; margin-bottom: 12px;">Discrepancies & Variances (speccs.WrongPayment)</h4>
+            <h4 style="color: #f87171; margin-bottom: 12px;">Discrepancies & Variances (amortix.WrongPayment)</h4>
             <div class="table-responsive">
                 <table>
                     <thead>

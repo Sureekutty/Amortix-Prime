@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 /**
  * Surety Replacement Workflow.
  * Replaces a guarantor on an active loan with another eligible member.
- * Corresponds to legacy suretyReplace.jsp and speccs.Surety updates.
+ * Corresponds to legacy suretyReplace.jsp and amortix.Surety updates.
  */
 @Document(collection = "surety_replacements")
 public class SuretyReplacement {

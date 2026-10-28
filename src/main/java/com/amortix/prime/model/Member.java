@@ -12,7 +12,7 @@ import java.util.List;
 
 /**
  * Core Cooperative Member Master Document.
- * Corresponds to legacy speccs.Members, speccs.MembersBasic, speccs.MemAddress, speccs.Nominee
+ * Corresponds to Amortix Members, amortix.MembersBasic, amortix.MemAddress, amortix.Nominee
  */
 @Document(collection = "members")
 public class Member {

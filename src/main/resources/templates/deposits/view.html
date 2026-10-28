@@ -83,7 +83,7 @@
             <a href="#" class="modal-close">&times;</a>
             <h3 style="margin-bottom: 12px; color: var(--danger);">Premature Deposit Closure</h3>
             <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 16px;">
-                Premature closure applies a <strong>1.5% penalty deduction</strong> (as per legacy speccs.Interest rule FXP).
+                Premature closure applies a <strong>1.5% penalty deduction</strong> (as per Amortix Interest rule FXP).
                 Interest will be recalculated on a simple basis.
             </p>
             <form th:action="@{'/deposits/premature-close/' + ${deposit.depositAccountNo}}" method="post">

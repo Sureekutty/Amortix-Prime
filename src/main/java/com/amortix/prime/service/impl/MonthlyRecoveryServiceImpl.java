@@ -229,7 +229,7 @@ public class MonthlyRecoveryServiceImpl implements MonthlyRecoveryService {
                 item.setStatus(deducted.compareTo(BigDecimal.ZERO) == 0 ? "UNPAID" : "SHORT");
                 totalVariance = totalVariance.add(variance.abs());
 
-                // Record discrepancy into WrongPayment list (Legacy speccs.WrongPayment)
+                // Record discrepancy into WrongPayment list (Amortix WrongPayment)
                 discrepancies.add(new MonthlyRecoveryRun.WrongPaymentRecord(
                         item.getMemberCode(), item.getEmployeeCode(), item.getTotalDemand(),
                         deducted, variance.abs(), "Short deduction in payroll cycle " + runCode));

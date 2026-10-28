@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
  * Voucher Document.
  * Unified double-entry transaction record supporting Receipts, Payments, Journal Vouchers (JV),
  * and Miscellaneous society expenses.
- * Corresponds to legacy speccs.Receipts, speccs.Payments, speccs.PayVouchers, speccs.MiscellaneousPayment.
+ * Corresponds to Amortix Receipts, amortix.Payments, amortix.PayVouchers, amortix.MiscellaneousPayment.
  */
 @Document(collection = "vouchers")
 public class Voucher {

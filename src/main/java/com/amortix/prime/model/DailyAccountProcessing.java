@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 /**
  * Daily Accounts Processing Document (Day Book Master).
  * Ensures everyday cash and bank balances are reconciled, tallied, and locked.
- * Corresponds to legacy speccs.DailyAccountsProcessing and DailyAccountsProcessing.java.
+ * Corresponds to Amortix DailyAccountsProcessing and DailyAccountsProcessing.java.
  */
 @Document(collection = "daily_accounts_processing")
 public class DailyAccountProcessing {

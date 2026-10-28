@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 /**
  * Audit Log Document.
- * Corresponds to legacy speccs.TBSC_EVENTS and speccs.TBSC_EXCEPTIONLOG.
+ * Corresponds to Amortix TBSC_EVENTS and amortix.TBSC_EXCEPTIONLOG.
  */
 @Document(collection = "audit_logs")
 public class AuditLog {

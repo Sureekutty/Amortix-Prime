@@ -14,7 +14,7 @@ import java.util.List;
  * Monthly Recovery Run Document.
  * Core Cooperative Engine for generating monthly payroll deduction demand schedules
  * and reconciling payroll response files.
- * Corresponds to legacy speccs.MonthlyProcess, speccs.MonthlyResponse, speccs.ProcessMonth.
+ * Corresponds to Amortix MonthlyProcess, amortix.MonthlyResponse, amortix.ProcessMonth.
  */
 @Document(collection = "monthly_recovery_runs")
 public class MonthlyRecoveryRun {

@@ -11,7 +11,7 @@ import java.util.Map;
 
 /**
  * AGM Resolution and Poll Document.
- * Corresponds to legacy speccs.savePoll.
+ * Corresponds to Amortix savePoll.
  */
 @Document(collection = "society_polls")
 public class Poll {

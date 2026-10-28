@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 /**
  * Deposit Account Document.
- * Corresponds to legacy speccs.Deposits, speccs.DepositTransactions, speccs.SP_Calculations.
+ * Corresponds to Amortix Deposits, amortix.DepositTransactions, amortix.SP_Calculations.
  * Supports products: FXD (Fixed Deposit), RCD (Recurring Deposit), MIS (Monthly Income Scheme).
  */
 @Document(collection = "deposit_accounts")

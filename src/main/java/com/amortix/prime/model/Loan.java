@@ -12,7 +12,7 @@ import java.util.List;
 
 /**
  * Loan Document.
- * Corresponds to legacy speccs.Loans, speccs.Loanstatus, speccs.Surety.
+ * Corresponds to Amortix Loans, amortix.Loanstatus, amortix.Surety.
  * Supports products: LTL, EXL, ELG, FDL.
  */
 @Document(collection = "loans")

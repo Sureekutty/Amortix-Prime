@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 /**
  * Interest Rate Rule Master Document.
- * Corresponds to legacy speccs.Interest.
+ * Corresponds to Amortix Interest.
  * Configures interest rates for all products: LTL, EXL, ELG, FDL, FXD, RCD, THRIFT.
  */
 @Document(collection = "interest_rate_rules")

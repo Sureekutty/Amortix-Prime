@@ -6,7 +6,7 @@ import java.time.LocalDate;
 
 /**
  * High-Precision Financial Math Engine for Cooperative Banking.
- * Faithfully mirrors legacy stored procedure speccs.SP_Calculations with exact precision.
+ * Faithfully mirrors legacy stored procedure amortix.SP_Calculations with exact precision.
  */
 public final class FinancialMath {
 

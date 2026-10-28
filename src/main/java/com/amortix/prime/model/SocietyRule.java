@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 /**
  * Society Master Business Rule Document.
- * Corresponds to legacy speccs.Rules.
+ * Corresponds to Amortix Rules.
  */
 @Document(collection = "society_rules")
 public class SocietyRule {

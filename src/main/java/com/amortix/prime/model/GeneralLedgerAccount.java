@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 /**
  * General Ledger Account Document.
  * Represents Chart of Accounts (Assets, Liabilities, Incomes, Expenses).
- * Corresponds to legacy speccs.SP_Ledger.
+ * Corresponds to Amortix SP_Ledger.
  */
 @Document(collection = "ledger_accounts")
 public class GeneralLedgerAccount {

@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 /**
  * Deposit Transaction Document.
- * Corresponds to legacy speccs.DepositTransactions.
+ * Corresponds to Amortix DepositTransactions.
  */
 @Document(collection = "deposit_transactions")
 public class DepositTransaction {

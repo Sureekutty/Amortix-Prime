@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 /**
  * Thrift Transaction Document.
- * Corresponds to legacy speccs.ThriftTransactions, speccs.ThriftInterestAmnt, speccs.sp_ThriftProcessUpload.
+ * Corresponds to Amortix ThriftTransactions, amortix.ThriftInterestAmnt, amortix.sp_ThriftProcessUpload.
  */
 @Document(collection = "thrift_transactions")
 public class ThriftTransaction {

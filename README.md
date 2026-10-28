@@ -26,7 +26,7 @@ AMORTIX | PRIME restores and enhances every module from the legacy Sybase/JSP sy
 1. **Member 360° Management:**
    * KYC, Employment, Basic Salary, Nominees, Addresses, and Bank Disbursement particulars.
    * Share Capital allotment and tracking.
-   * Full & Final Retirement Settlement engine (`speccs.SP_MemberSettlementNew`).
+   * Full & Final Retirement Settlement engine (`amortix.SP_MemberSettlementNew`).
 2. **Credit & Lending Engine:**
    * Products: Long Term Loan (`LTL`), Executive / Express Loan (`EXL`), Emergency Loan (`ELG`), Fixed Deposit Loan (`FDL`).
    * Reducing Balance EMI computation.
@@ -34,24 +34,24 @@ AMORTIX | PRIME restores and enhances every module from the legacy Sybase/JSP sy
    * Automated PDF Sanction Order generation.
 3. **Term & Recurring Deposits:**
    * Products: Fixed Deposit (`FXD`), Recurring Cumulative Deposit (`RCD`), Monthly Income Scheme (`MIS`).
-   * Quarterly compounding adhering to legacy 3rd-of-the-month cutoff date rules (`speccs.SP_Calculations`).
+   * Quarterly compounding adhering to legacy 3rd-of-the-month cutoff date rules (`amortix.SP_Calculations`).
    * Premature withdrawal with automated penalty rate deduction (`FXP`).
 4. **Compulsory Monthly Thrift Fund:**
    * Monthly thrift savings deductions.
-   * Annual compound thrift interest accrual and batch posting (`speccs.sp_ThriftInterestUpload`).
+   * Annual compound thrift interest accrual and batch posting (`amortix.sp_ThriftInterestUpload`).
 5. **Monthly Recovery & Reconciliation Engine:**
-   * Automatic generation of monthly salary deduction Demand Schedules for employer payroll (`speccs.MonthlyProcess`).
+   * Automatic generation of monthly salary deduction Demand Schedules for employer payroll (`amortix.MonthlyProcess`).
    * Text/CSV export of billing demands.
    * Employer payroll response file upload and statutory waterfall reconciliation.
-   * Under/over-deduction discrepancy logging (`speccs.WrongPayment`).
+   * Under/over-deduction discrepancy logging (`amortix.WrongPayment`).
 6. **Double-Entry Accounting & Treasury Day Book:**
-   * Daily Accounts Processing, opening cash, inflows, outflows, closing balance, and day-end lock (`speccs.DailyAccountsProcessing`).
+   * Daily Accounts Processing, opening cash, inflows, outflows, closing balance, and day-end lock (`amortix.DailyAccountsProcessing`).
    * Receipts, Payments, and Journal Vouchers (`JV`).
    * Live Chart of Accounts & Trial Balance.
 7. **Governance & Audit Trail:**
-   * Dynamic Society Rules Engine (`speccs.Rules`) & Interest Rate Master (`speccs.Interest`).
-   * Cooperative AGM Resolutions and Ballot Voting (`speccs.savePoll`).
-   * Immutable Transaction Audit Trail (`speccs.TBSC_EVENTS`).
+   * Dynamic Society Rules Engine (`amortix.Rules`) & Interest Rate Master (`amortix.Interest`).
+   * Cooperative AGM Resolutions and Ballot Voting (`amortix.savePoll`).
+   * Immutable Transaction Audit Trail (`amortix.TBSC_EVENTS`).
 
 ---
 
