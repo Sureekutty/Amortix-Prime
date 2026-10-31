@@ -9,7 +9,7 @@
 		<relativePath/>
 	</parent>
 	<groupId>com.amortix</groupId>
-	<artifactId>prime</artifactId>
+	<artifactId>amortix-prime</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
 	<name>Amortix-Prime</name>
 	<description>AMORTIX | PRIME - Cooperative Credit &amp; Core Ledger Architecture</description>
