@@ -6,6 +6,7 @@ import com.amortix.prime.service.AccountingService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -25,6 +26,7 @@ public class AccountingController {
     }
 
     @GetMapping("/daybook")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public String viewDayBook(@RequestParam(value = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
                               Model model) {
         LocalDate queryDate = date != null ? date : LocalDate.now();
@@ -35,12 +37,13 @@ public class AccountingController {
     }
 
     @PostMapping("/daybook/close")
+    @PreAuthorize("hasRole('ADMIN')")
     public String closeDayBook(@RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
                                @RequestParam(value = "remarks", defaultValue = "Day end closing completed") String remarks,
                                Authentication auth,
                                RedirectAttributes redirectAttrs) {
         try {
-            String officer = auth != null ? auth.getName() : "OFFICER";
+            String officer = auth != null ? auth.getName() : "ADMIN";
             DailyAccountProcessing closed = accountingService.closeAndLockDayBook(date, remarks, officer);
             redirectAttrs.addFlashAttribute("successMessage", "Day book for " + date + " has been closed and locked! Closing Cash: INR " + closed.getClosingCashBalance());
         } catch (Exception e) {
@@ -50,6 +53,7 @@ public class AccountingController {
     }
 
     @GetMapping("/vouchers")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public String listVouchers(@RequestParam(value = "type", required = false) String type,
                                @RequestParam(value = "page", defaultValue = "0") int page,
                                Model model) {
@@ -60,6 +64,7 @@ public class AccountingController {
     }
 
     @GetMapping("/voucher/new")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public String newVoucherForm(Model model) {
         Voucher voucher = new Voucher();
         voucher.setVoucherType("PAYMENT");
@@ -70,6 +75,7 @@ public class AccountingController {
     }
 
     @PostMapping("/voucher/save")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public String saveVoucher(@ModelAttribute Voucher voucher, Authentication auth, RedirectAttributes redirectAttrs) {
         try {
             String officer = auth != null ? auth.getName() : "OFFICER";
@@ -83,6 +89,7 @@ public class AccountingController {
     }
 
     @GetMapping("/trial-balance")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public String trialBalance(Model model) {
         AccountingService.TrialBalanceReport report = accountingService.generateTrialBalance();
         model.addAttribute("report", report);

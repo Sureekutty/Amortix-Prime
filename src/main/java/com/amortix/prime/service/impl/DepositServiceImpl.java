@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Service
@@ -140,9 +141,19 @@ public class DepositServiceImpl implements DepositService {
         double reducedRate = Math.max(0.5, dep.getInterestRate() - penaltyRate);
         dep.setPrematurePenaltyRate(BigDecimal.valueOf(penaltyRate));
 
-        // Recompute reduced interest payout
-        BigDecimal reducedMaturity = FinancialMath.calculateFixedDepositMaturity(dep.getPrincipalAmount(),
-                reducedRate, dep.getTenureMonths(), "SIMPLE");
+        // Recompute reduced interest payout based on actual elapsed months (Bug #4 fix)
+        int elapsedMonths = (int) ChronoUnit.MONTHS.between(
+                dep.getDepositDate() != null ? dep.getDepositDate() : LocalDate.now(), LocalDate.now());
+
+        BigDecimal reducedMaturity;
+        if (elapsedMonths <= 0) {
+            reducedMaturity = dep.getPrincipalAmount();
+        } else {
+            int applicableMonths = Math.min(elapsedMonths, dep.getTenureMonths());
+            reducedMaturity = FinancialMath.calculateFixedDepositMaturity(dep.getPrincipalAmount(),
+                    reducedRate, applicableMonths, "SIMPLE");
+        }
+
         dep.setFinalPayoutAmount(reducedMaturity);
         dep.setStatus("PREMATURE_CLOSED");
         dep.setClosureDate(LocalDate.now());

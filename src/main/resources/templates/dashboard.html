@@ -1,78 +1,217 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: main('Executive Cockpit', ~{::content})}">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:replace="~{fragments/layout :: main(${isMemberPortal} ? 'Member Portal Cockpit' : 'Executive Cockpit', ~{::content})}">
 <body>
 <div th:fragment="content">
 
-    <!-- KPI Grid -->
-    <div class="grid-stats">
-        <div class="stat-card">
-            <div class="stat-label">Active Members</div>
-            <div class="stat-value" th:text="${activeMembersCount}">0</div>
-            <div class="stat-sub">Shareholding Co-op Members</div>
-        </div>
+    <!-- ================= MEMBER SELF-SERVICE COCKPIT ================= -->
+    <th:block th:if="${isMemberPortal}">
+        <div class="card" th:if="${myMember != null}">
+            <div class="card-header">
+                <div>
+                    <h3 th:text="${myMember.fullName}" style="color: var(--text-main); font-size: 1.4rem;">Member Name</h3>
+                    <span style="color: var(--primary); font-weight: 700;" th:text="${myMember.memberCode}">MEM-1001</span> |
+                    <span th:text="${myMember.designation} + ' — ' + ${myMember.department}" style="color: var(--text-dim);">Designation</span>
+                </div>
+                <div>
+                    <span class="badge badge-success" th:text="${myMember.status}">ACTIVE</span>
+                </div>
+            </div>
 
-        <div class="stat-card">
-            <div class="stat-label">Active Loan Accounts</div>
-            <div class="stat-value" th:text="${activeLoansCount}" style="color: var(--primary);">0</div>
-            <div class="stat-sub">
-                <span th:text="${pendingLoansCount}">0</span> Applications Pending
+            <div class="grid-stats" style="margin-bottom: 0;">
+                <div class="stat-card">
+                    <div class="stat-label">Accumulated Thrift Fund</div>
+                    <div class="stat-value" th:text="'₹' + ${myMember.thriftBalance}" style="color: var(--primary);">₹0.00</div>
+                    <div class="stat-sub">Monthly: <span th:text="'₹' + ${myMember.monthlyThriftAmount}">₹0</span></div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">Paid-Up Share Capital</div>
+                    <div class="stat-value" th:text="'₹' + ${myMember.shareCapitalBalance}">₹0.00</div>
+                    <div class="stat-sub"><span th:text="${myMember.totalShares}">0</span> Co-op Shares</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">Active Loans Outstanding</div>
+                    <div class="stat-value" th:text="'₹' + ${totalLoanOutstanding}" style="color: #f87171;">₹0.00</div>
+                    <div class="stat-sub"><span th:text="${myLoans.size()}">0</span> Active Facility</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">Term & Fixed Deposits</div>
+                    <div class="stat-value" th:text="'₹' + ${totalDepositBalance}" style="color: #34d399;">₹0.00</div>
+                    <div class="stat-sub"><span th:text="${myDeposits.size()}">0</span> Active Accounts</div>
+                </div>
             </div>
         </div>
 
-        <div class="stat-card">
-            <div class="stat-label">Term Deposits</div>
-            <div class="stat-value" th:text="${activeDepositsCount}" style="color: var(--success);">0</div>
-            <div class="stat-sub">Fixed & Recurring Deposits</div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-label">Vault Cash In Hand</div>
-            <div class="stat-value" th:text="'₹' + ${cashBalance}">₹0</div>
-            <div class="stat-sub">
-                Day Book Status: <span class="badge badge-success" th:text="${dayStatus}">OPEN</span>
+        <!-- Quick Member Actions -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Member Quick Services</div>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+                <a th:href="@{/members/my-profile}" class="btn btn-primary">👤 View My 360° Profile</a>
+                <a th:href="@{/loans/apply}" class="btn btn-secondary">💳 Apply for New Loan</a>
+                <a th:href="@{/thrift/my-thrift}" class="btn btn-secondary">💰 View Thrift Passbook</a>
+                <a th:href="@{/polls}" class="btn btn-secondary">🗳️ AGM Resolutions & Voting</a>
             </div>
         </div>
-    </div>
 
-    <!-- Quick Operations & Direct Actions -->
-    <div class="card">
-        <div class="card-header">
-            <div class="card-title">Core Operations Quick Launch</div>
-            <div style="font-size: 0.82rem; color: var(--text-dim);" th:text="'Ledger Date: ' + ${currentDate}">Date</div>
-        </div>
-
-        <div style="display: flex; flex-wrap: wrap; gap: 12px;">
-            <a th:href="@{/members/new}" class="btn btn-primary">➕ Enroll Member</a>
-            <a th:href="@{/loans/apply}" class="btn btn-secondary">💳 Apply for Loan</a>
-            <a th:href="@{/deposits/open}" class="btn btn-secondary">🏦 Open Term Deposit</a>
-            <a th:href="@{/recovery}" class="btn btn-secondary">🗓️ Run Monthly Recovery</a>
-            <a th:href="@{/accounting/daybook}" class="btn btn-secondary">📖 Balance Day Book</a>
-            <a th:href="@{/accounting/voucher/new}" class="btn btn-secondary">🧾 Post Double-Entry Voucher</a>
-        </div>
-    </div>
-
-    <!-- Architecture & Compliance Summary -->
-    <div class="card">
-        <div class="card-header">
-            <div class="card-title">Platform Architecture Compliance</div>
-            <span class="badge badge-info">Zero-JS Monolith</span>
-        </div>
-        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 14px;">
-            AMORTIX | PRIME runs on <strong>Java 21 LTS</strong>, <strong>Spring Boot 3</strong>, <strong>Spring Security 6</strong>,
-            and <strong>Spring Data JPA (MySQL)</strong>. Every validation, financial ledger rule, and interest calculation is executed
-            exclusively on the server.
-        </p>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; font-size: 0.85rem;">
-            <div style="background: rgba(15, 23, 42, 0.6); padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-                <strong style="color: var(--primary);">Full Legacy Parity:</strong>
-                <p style="color: var(--text-dim); margin-top: 4px;">Includes 100% of modules from legacy Sybase/JSP: Loans (LTL, EXL, ELG, FDL), Deposits (FXD, RCD, MIS), Monthly Demand Schedules, Day End Closing, and Surety Replacements.</p>
+        <!-- Member's Active Loans -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">My Loan Facilities</div>
             </div>
-            <div style="background: rgba(15, 23, 42, 0.6); padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-                <strong style="color: var(--success);">MySQL Relational Core:</strong>
-                <p style="color: var(--text-dim); margin-top: 4px;">ACID transaction compliant relational engine. Optimized indexing on member codes, loan account numbers, and daily accounting dates (Port 3306).</p>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Loan Account No</th>
+                        <th>Type</th>
+                        <th>Purpose</th>
+                        <th>Sanction Amount</th>
+                        <th>Monthly EMI</th>
+                        <th>Outstanding Principal</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="l : ${myLoans}">
+                        <td><strong th:text="${l.loanAccountNo}" style="color: var(--primary);">LTL-10001</strong></td>
+                        <td th:text="${l.loanType}">LTL</td>
+                        <td th:text="${l.loanPurpose}">Purpose</td>
+                        <td th:text="'₹' + ${l.sanctionAmount}">₹0.00</td>
+                        <td th:text="'₹' + ${l.monthlyInstallment}">₹0.00</td>
+                        <td th:text="'₹' + ${l.outstandingPrincipal}" style="font-weight: 700; color: #f87171;">₹0.00</td>
+                        <td><span class="badge badge-success" th:text="${l.status}">ACTIVE</span></td>
+                        <td>
+                            <a th:href="@{'/loans/view/' + ${l.loanAccountNo}}" class="btn btn-secondary btn-sm">View Ledger</a>
+                        </td>
+                    </tr>
+                    <tr th:if="${myLoans.isEmpty()}">
+                        <td colspan="8" style="text-align: center; color: var(--text-dim); padding: 20px;">No loan accounts linked to your profile.</td>
+                    </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
-    </div>
+
+        <!-- Member's Term Deposits -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">My Term & Recurring Deposits</div>
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Deposit No</th>
+                        <th>Product</th>
+                        <th>Principal Amount</th>
+                        <th>Interest Rate</th>
+                        <th>Maturity Date</th>
+                        <th>Maturity Value</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="d : ${myDeposits}">
+                        <td><strong th:text="${d.depositAccountNo}" style="color: var(--primary);">FXD-10001</strong></td>
+                        <td th:text="${d.depositType}">FXD</td>
+                        <td th:text="'₹' + ${d.principalAmount}">₹0.00</td>
+                        <td th:text="${d.interestRate} + '%'">7.5%</td>
+                        <td th:text="${d.maturityDate}">Date</td>
+                        <td th:text="'₹' + ${d.maturityAmount}" style="font-weight: 700; color: #34d399;">₹0.00</td>
+                        <td><span class="badge badge-success" th:text="${d.status}">ACTIVE</span></td>
+                        <td>
+                            <a th:href="@{'/deposits/view/' + ${d.depositAccountNo}}" class="btn btn-secondary btn-sm">View Account</a>
+                        </td>
+                    </tr>
+                    <tr th:if="${myDeposits.isEmpty()}">
+                        <td colspan="8" style="text-align: center; color: var(--text-dim); padding: 20px;">No active term deposits found.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </th:block>
+
+
+    <!-- ================= EXECUTIVE COCKPIT (ADMIN & STAFF) ================= -->
+    <th:block th:if="${!isMemberPortal}">
+        <!-- KPI Grid -->
+        <div class="grid-stats">
+            <div class="stat-card">
+                <div class="stat-label">Active Members</div>
+                <div class="stat-value" th:text="${activeMembersCount}">0</div>
+                <div class="stat-sub">Shareholding Co-op Members</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">Active Loan Accounts</div>
+                <div class="stat-value" th:text="${activeLoansCount}" style="color: var(--primary);">0</div>
+                <div class="stat-sub">
+                    <span th:text="${pendingLoansCount}">0</span> Applications Pending
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">Term Deposits</div>
+                <div class="stat-value" th:text="${activeDepositsCount}" style="color: var(--success);">0</div>
+                <div class="stat-sub">Fixed & Recurring Deposits</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">Vault Cash In Hand</div>
+                <div class="stat-value" th:text="'₹' + ${cashBalance}">₹0</div>
+                <div class="stat-sub">
+                    Day Book Status: <span class="badge badge-success" th:text="${dayStatus}">OPEN</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Operations & Direct Actions -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Core Operations Quick Launch</div>
+                <div style="font-size: 0.82rem; color: var(--text-dim);" th:text="'Ledger Date: ' + ${currentDate}">Date</div>
+            </div>
+
+            <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+                <a th:href="@{/members/new}" class="btn btn-primary">➕ Enroll Member</a>
+                <a th:href="@{/loans/apply}" class="btn btn-secondary">💳 Apply for Loan</a>
+                <a th:href="@{/deposits/open}" class="btn btn-secondary">🏦 Open Term Deposit</a>
+                <a th:href="@{/recovery}" class="btn btn-secondary">🗓️ Run Monthly Recovery</a>
+                <a th:href="@{/accounting/daybook}" class="btn btn-secondary">📖 Balance Day Book</a>
+                <a th:href="@{/accounting/voucher/new}" class="btn btn-secondary">🧾 Post Double-Entry Voucher</a>
+            </div>
+        </div>
+
+        <!-- Architecture & Compliance Summary -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Platform Architecture Compliance</div>
+                <span class="badge badge-info">Zero-JS Monolith</span>
+            </div>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 14px;">
+                AMORTIX | PRIME runs on <strong>Java 21 LTS</strong>, <strong>Spring Boot 3</strong>, <strong>Spring Security 6</strong>,
+                and <strong>Spring Data JPA (MySQL)</strong>. Every validation, financial ledger rule, and interest calculation is executed
+                exclusively on the server.
+            </p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; font-size: 0.85rem;">
+                <div style="background: rgba(15, 23, 42, 0.6); padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                    <strong style="color: var(--primary);">Full Legacy Parity:</strong>
+                    <p style="color: var(--text-dim); margin-top: 4px;">Includes 100% of modules from legacy Sybase/JSP: Loans (LTL, EXL, ELG, FDL), Deposits (FXD, RCD, MIS), Monthly Demand Schedules, Day End Closing, and Surety Replacements.</p>
+                </div>
+                <div style="background: rgba(15, 23, 42, 0.6); padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                    <strong style="color: var(--success);">MySQL Relational Core:</strong>
+                    <p style="color: var(--text-dim); margin-top: 4px;">ACID transaction compliant relational engine. Optimized indexing on member codes, loan account numbers, and daily accounting dates (Port 3306).</p>
+                </div>
+            </div>
+        </div>
+    </th:block>
 
 </div>
 </body>

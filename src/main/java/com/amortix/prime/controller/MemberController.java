@@ -4,13 +4,11 @@ import com.amortix.prime.model.DepositAccount;
 import com.amortix.prime.model.Loan;
 import com.amortix.prime.model.Member;
 import com.amortix.prime.model.ThriftTransaction;
-import com.amortix.prime.service.DepositService;
-import com.amortix.prime.service.LoanService;
-import com.amortix.prime.service.MemberService;
-import com.amortix.prime.service.ThriftService;
+import com.amortix.prime.service.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -28,18 +26,22 @@ public class MemberController {
     private final LoanService loanService;
     private final DepositService depositService;
     private final ThriftService thriftService;
+    private final SecurityService securityService;
 
     public MemberController(MemberService memberService,
                             LoanService loanService,
                             DepositService depositService,
-                            ThriftService thriftService) {
+                            ThriftService thriftService,
+                            SecurityService securityService) {
         this.memberService = memberService;
         this.loanService = loanService;
         this.depositService = depositService;
         this.thriftService = thriftService;
+        this.securityService = securityService;
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public String listMembers(@RequestParam(value = "search", required = false) String search,
                               @RequestParam(value = "page", defaultValue = "0") int page,
                               Model model) {
@@ -50,6 +52,7 @@ public class MemberController {
     }
 
     @GetMapping("/new")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public String newMemberForm(Model model) {
         Member member = new Member();
         member.getAddresses().add(new Member.Address("PRESENT", "", "", "", "", ""));
@@ -59,8 +62,16 @@ public class MemberController {
     }
 
     @PostMapping("/save")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public String saveMember(@ModelAttribute Member member, RedirectAttributes redirectAttrs) {
         try {
+            // Protect against over-posting: set safe defaults for new member registration
+            if (member.getId() == null || member.getId().isBlank()) {
+                member.setStatus("ACTIVE");
+                if (member.getShareCapitalBalance() == null) member.setShareCapitalBalance(BigDecimal.ZERO);
+                if (member.getThriftBalance() == null) member.setThriftBalance(BigDecimal.ZERO);
+                member.setActiveSuretyCount(0);
+            }
             Member saved = memberService.registerMember(member);
             redirectAttrs.addFlashAttribute("successMessage", "Member successfully saved with code: " + saved.getMemberCode());
             return "redirect:/members/view/" + saved.getMemberCode();
@@ -72,6 +83,9 @@ public class MemberController {
 
     @GetMapping("/view/{memberCode}")
     public String viewMemberProfile(@PathVariable String memberCode, Model model) {
+        // Enforce member data isolation
+        securityService.validateMemberAccess(memberCode);
+
         Member member = memberService.findByMemberCode(memberCode);
         List<Loan> loans = loanService.findLoansByMemberCode(memberCode);
         List<DepositAccount> deposits = depositService.findByMemberCode(memberCode);
@@ -84,7 +98,17 @@ public class MemberController {
         return "members/view";
     }
 
+    @GetMapping("/my-profile")
+    public String viewMyProfile() {
+        String memberCode = securityService.getCurrentMemberCode();
+        if (memberCode == null) {
+            return "redirect:/dashboard";
+        }
+        return "redirect:/members/view/" + memberCode;
+    }
+
     @GetMapping("/settle/{memberCode}")
+    @PreAuthorize("hasRole('ADMIN')")
     public String memberSettlementView(@PathVariable String memberCode, Model model) {
         Member member = memberService.findByMemberCode(memberCode);
         List<Loan> loans = loanService.findLoansByMemberCode(memberCode);
@@ -117,6 +141,7 @@ public class MemberController {
     }
 
     @PostMapping("/settle/{memberCode}/execute")
+    @PreAuthorize("hasRole('ADMIN')")
     public String executeMemberSettlement(@PathVariable String memberCode,
                                          @RequestParam(value = "remarks", defaultValue = "Full & Final Settlement") String remarks,
                                          Authentication auth,

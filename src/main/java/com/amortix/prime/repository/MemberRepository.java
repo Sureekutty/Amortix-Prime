@@ -18,6 +18,7 @@ public interface MemberRepository extends JpaRepository<Member, String> {
 
     List<Member> findByStatus(String status);
     Page<Member> findByStatus(String status, Pageable pageable);
+    long countByStatus(String status);
 
     Page<Member> findByFullNameContainingIgnoreCaseOrMemberCodeContainingIgnoreCaseOrEmployeeCodeContainingIgnoreCase(
             String name, String memberCode, String empCode, Pageable pageable);

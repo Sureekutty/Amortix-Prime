@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: main('User & Access Management', ~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <div class="card">
+        <div class="card-header">
+            <div>
+                <div class="card-title">User Accounts & Role Privilege Administration</div>
+                <div style="font-size: 0.82rem; color: var(--text-dim);">Strict Role-Based Access Control (RBAC) Management</div>
+            </div>
+            <div>
+                <a href="#newUserModal" class="btn btn-primary btn-sm">➕ Create Staff / User</a>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table>
+                <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Full Name</th>
+                    <th>Email</th>
+                    <th>Linked Member Code</th>
+                    <th>Assigned Roles</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="u : ${users}">
+                    <td><strong th:text="${u.username}" style="color: var(--primary);">admin</strong></td>
+                    <td th:text="${u.fullName}">Name</td>
+                    <td th:text="${u.email}">email@coop</td>
+                    <td><span class="badge badge-info" th:text="${u.memberCode != null ? u.memberCode : 'INTERNAL'}">INTERNAL</span></td>
+                    <td>
+                        <span th:each="r : ${u.roles}" class="badge badge-secondary" th:text="${r}" style="margin-right: 4px;">ROLE</span>
+                    </td>
+                    <td>
+                        <span th:class="'badge ' + (${u.enabled} ? 'badge-success' : 'badge-danger')"
+                              th:text="${u.enabled ? 'ACTIVE' : 'DISABLED'}">ACTIVE</span>
+                    </td>
+                    <td>
+                        <form th:if="${u.username != 'admin'}" th:action="@{/admin/users/toggle-status}" method="post" style="display:inline;">
+                            <input type="hidden" name="username" th:value="${u.username}">
+                            <button type="submit" class="btn btn-secondary btn-sm" th:text="${u.enabled ? 'Disable' : 'Enable'}">Toggle</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- New User Modal -->
+    <div id="newUserModal" class="modal-overlay">
+        <div class="modal-box">
+            <a href="#" class="modal-close">&times;</a>
+            <h3 style="margin-bottom: 12px; color: var(--text-main);">Provision New System Operator</h3>
+            <form th:action="@{/admin/users/create}" method="post">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" name="username" placeholder="e.g. loan_officer1" required>
+                </div>
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" name="fullName" placeholder="e.g. Priya Sundaram" required>
+                </div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" name="email" placeholder="priya@amortix.prime" required>
+                </div>
+                <div class="form-group">
+                    <label>Temporary Password</label>
+                    <input type="password" name="password" placeholder="••••••••" required>
+                </div>
+                <div class="form-group">
+                    <label>Role Privilege Assignment</label>
+                    <select name="role" required>
+                        <option value="ROLE_STAFF">STAFF (Operations, Loan Processing, Recovery)</option>
+                        <option value="ROLE_ADMIN">ADMIN (Full Governance, Auditing & Accounting)</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                    <a href="#" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Provision Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

@@ -21,6 +21,12 @@ public class AuthController {
         return "login";
     }
 
+    @GetMapping("/access-denied")
+    public String accessDenied(Model model) {
+        model.addAttribute("errorMessage", "Access Restricted: You do not possess the required privileges or record ownership.");
+        return "access_denied";
+    }
+
     @GetMapping("/")
     public String root() {
         return "redirect:/dashboard";

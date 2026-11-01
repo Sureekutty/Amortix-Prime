@@ -26,10 +26,30 @@ public class SecurityConfig {
         http
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/css/**", "/images/**", "/favicon.ico", "/actuator/health").permitAll()
-                .requestMatchers("/login", "/error").permitAll()
+                .requestMatchers("/login", "/error", "/access-denied").permitAll()
+
+                // ADMIN strictly required for System Governance, Rules, Rates, Audit, User Provisioning, Member Settlement, Day Book Closing
                 .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/members/settle/**").hasRole("ADMIN")
+                .requestMatchers("/accounting/daybook/close").hasRole("ADMIN")
+                .requestMatchers("/thrift/annual-interest").hasRole("ADMIN")
+                .requestMatchers("/loans/approve/**", "/loans/disburse/**", "/loans/surety-replace/approve/**").hasRole("ADMIN")
+
+                // OPERATIONAL (ADMIN + STAFF)
+                .requestMatchers("/members", "/members/new", "/members/save").hasAnyRole("ADMIN", "STAFF")
+                .requestMatchers("/loans", "/loans/repay/**", "/loans/surety-replace").hasAnyRole("ADMIN", "STAFF")
+                .requestMatchers("/deposits", "/deposits/open", "/deposits/save", "/deposits/premature-close/**", "/deposits/rcd-installment").hasAnyRole("ADMIN", "STAFF")
+                .requestMatchers("/thrift").hasAnyRole("ADMIN", "STAFF")
                 .requestMatchers("/accounting/**").hasAnyRole("ADMIN", "STAFF")
                 .requestMatchers("/recovery/**").hasAnyRole("ADMIN", "STAFF")
+
+                // MEMBER + ALL AUTHENTICATED (Scoped by SecurityService Data Ownership)
+                .requestMatchers("/dashboard", "/polls/**").authenticated()
+                .requestMatchers("/members/view/**", "/members/my-profile").authenticated()
+                .requestMatchers("/loans/apply", "/loans/save", "/loans/view/**", "/loans/pdf/**", "/loans/surety-replace/request").authenticated()
+                .requestMatchers("/deposits/view/**").authenticated()
+                .requestMatchers("/thrift/member/**", "/thrift/my-thrift").authenticated()
+
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
@@ -44,6 +64,9 @@ public class SecurityConfig {
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
                 .permitAll()
+            )
+            .exceptionHandling(ex -> ex
+                .accessDeniedPage("/access-denied")
             );
 
         return http.build();

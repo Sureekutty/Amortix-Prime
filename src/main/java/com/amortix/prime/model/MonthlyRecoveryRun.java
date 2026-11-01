@@ -24,7 +24,9 @@ public class MonthlyRecoveryRun {
     @Column(unique = true, nullable = false)
     private String runCode; // e.g. REC-2026-10
 
+    @Column(name = "billing_month")
     private int month; // 1 to 12
+    @Column(name = "billing_year")
     private int year;  // e.g. 2026
     private String billingCycleName; // e.g. "October 2026 Salary Deductions"
 

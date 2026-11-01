@@ -7,7 +7,7 @@ import com.amortix.prime.model.Voucher;
 import com.amortix.prime.repository.AuditLogRepository;
 import com.amortix.prime.repository.MemberRepository;
 import com.amortix.prime.repository.ThriftTransactionRepository;
-import com.amortix.prime.repository.VoucherRepository;
+import com.amortix.prime.service.AccountingService;
 import com.amortix.prime.service.ThriftService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,16 +24,16 @@ public class ThriftServiceImpl implements ThriftService {
 
     private final MemberRepository memberRepository;
     private final ThriftTransactionRepository thriftTransactionRepository;
-    private final VoucherRepository voucherRepository;
+    private final AccountingService accountingService;
     private final AuditLogRepository auditLogRepository;
 
     public ThriftServiceImpl(MemberRepository memberRepository,
                              ThriftTransactionRepository thriftTransactionRepository,
-                             VoucherRepository voucherRepository,
+                             AccountingService accountingService,
                              AuditLogRepository auditLogRepository) {
         this.memberRepository = memberRepository;
         this.thriftTransactionRepository = thriftTransactionRepository;
-        this.voucherRepository = voucherRepository;
+        this.accountingService = accountingService;
         this.auditLogRepository = auditLogRepository;
     }
 
@@ -97,16 +97,18 @@ public class ThriftServiceImpl implements ThriftService {
             }
         }
 
-        // Create Journal Voucher for Society Expense -> Thrift Liability
-        Voucher jv = new Voucher();
-        jv.setVoucherNo("THRIFT-INT-" + System.currentTimeMillis() % 100000);
-        jv.setVoucherType("JOURNAL_VOUCHER");
-        jv.setDebitAccountCode("5001-THRIFT_INTEREST_EXPENSE");
-        jv.setCreditAccountCode("3001-THRIFT_DEPOSIT_LIABILITY");
-        jv.setAmount(totalInterest);
-        jv.setNarration("Annual Thrift Interest Accrual for " + count + " active members at " + annualInterestRate + "%");
-        jv.setPreparedBy(operatorUser);
-        voucherRepository.save(jv);
+        // Create Journal Voucher with correct Chart of Accounts codes (Bug #7 fix)
+        // 6001 = Deposit & Thrift Interest Expense (DEBIT)
+        // 3001 = Member Thrift Deposit Liability (CREDIT)
+        if (totalInterest.compareTo(BigDecimal.ZERO) > 0) {
+            Voucher jv = new Voucher();
+            jv.setVoucherType("JOURNAL_VOUCHER");
+            jv.setDebitAccountCode("6001");
+            jv.setCreditAccountCode("3001");
+            jv.setAmount(totalInterest);
+            jv.setNarration("Annual Thrift Interest Accrual for " + count + " active members at " + annualInterestRate + "%");
+            accountingService.createVoucher(jv, operatorUser);
+        }
 
         auditLogRepository.save(new AuditLog(operatorUser, "THRIFT_INTEREST_RUN", "Thrift", "ALL",
                 "Distributed ₹" + totalInterest + " interest to " + count + " members"));

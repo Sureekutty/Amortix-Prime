@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: main('AGM Resolutions & Polls', ~{::content})}">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:replace="~{fragments/layout :: main('AGM Resolutions & Polls', ~{::content})}">
 <body>
 <div th:fragment="content">
 
@@ -7,7 +7,10 @@
         <div class="card-header">
             <div>
                 <div class="card-title">Cooperative AGM Resolutions & Member Voting</div>
-                <div style="font-size: 0.82rem; color: var(--text-dim);">Amortix savePoll Voting Engine</div>
+                <div style="font-size: 0.82rem; color: var(--text-dim);">Democratic Balloting & Voting System</div>
+            </div>
+            <div sec:authorize="hasRole('ADMIN')">
+                <a href="#newPollModal" class="btn btn-primary btn-sm">➕ Create Resolution Poll</a>
             </div>
         </div>
 
@@ -20,22 +23,68 @@
                 <span class="badge badge-success">ACTIVE BALLOT</span>
             </div>
 
-            <!-- Cast Ballot Form -->
-            <form th:action="@{/admin/polls/vote}" method="post" style="margin-top: 16px;">
+            <!-- Cast Ballot Form or Voted Status -->
+            <div th:if="${p.memberVotes.containsKey(voterId)}" class="alert alert-success" style="margin-top: 12px;">
+                <span>✓</span>
+                <span>You have cast your ballot on this resolution. Your recorded vote: <strong th:text="${p.memberVotes.get(voterId)}">Choice</strong></span>
+            </div>
+
+            <form th:if="${!p.memberVotes.containsKey(voterId)}" th:action="@{/polls/vote}" method="post" style="margin-top: 16px;">
                 <input type="hidden" name="pollId" th:value="${p.id}">
                 <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
                     <label th:each="opt : ${p.options}" style="display: flex; align-items: center; gap: 10px; cursor: pointer; color: var(--text-main);">
                         <input type="radio" name="option" th:value="${opt}" required>
                         <span th:text="${opt}">Option</span>
-                        <span style="color: var(--text-dim); font-size: 0.75rem;" th:text="'(' + ${p.voteCounts.get(opt)} + ' votes)'"></span>
+                        <span style="color: var(--text-dim); font-size: 0.75rem;" th:text="'(' + ${p.voteCounts.getOrDefault(opt, 0)} + ' votes)'"></span>
                     </label>
                 </div>
-                <button type="submit" class="btn btn-primary btn-sm">Cast Official Vote</button>
+                <button type="submit" class="btn btn-primary btn-sm">Cast Official Ballot</button>
             </form>
+
+            <div th:if="${p.memberVotes.containsKey(voterId)}" style="margin-top: 12px; font-size: 0.85rem; color: var(--text-dim);">
+                <div style="font-weight: 600; margin-bottom: 6px;">Live Voting Tally:</div>
+                <div th:each="opt : ${p.options}" style="margin-bottom: 4px;">
+                    <span th:text="${opt}">Option</span>: <strong th:text="${p.voteCounts.getOrDefault(opt, 0)} + ' votes'">0</strong>
+                </div>
+            </div>
         </div>
 
         <div th:if="${polls.isEmpty()}" style="text-align: center; color: var(--text-dim); padding: 30px;">
             No active AGM resolution ballots currently open.
+        </div>
+    </div>
+
+    <!-- Admin New Poll Modal -->
+    <div id="newPollModal" class="modal-overlay" sec:authorize="hasRole('ADMIN')">
+        <div class="modal-box">
+            <a href="#" class="modal-close">&times;</a>
+            <h3 style="margin-bottom: 12px; color: var(--text-main);">Create New AGM Resolution</h3>
+            <form th:action="@{/polls/create}" method="post">
+                <div class="form-group">
+                    <label>Resolution Title</label>
+                    <input type="text" name="title" placeholder="e.g. Dividend Distribution Rate for FY 2026-27" required>
+                </div>
+                <div class="form-group">
+                    <label>Description / Motion Text</label>
+                    <textarea name="description" rows="3" placeholder="Details of the motion submitted for voting..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Voting Option 1</label>
+                    <input type="text" name="options" placeholder="e.g. In Favor (Approve 12% Dividend)" required>
+                </div>
+                <div class="form-group">
+                    <label>Voting Option 2</label>
+                    <input type="text" name="options" placeholder="e.g. Against (Retain in Reserves)" required>
+                </div>
+                <div class="form-group">
+                    <label>Voting Option 3 (Optional)</label>
+                    <input type="text" name="options" placeholder="e.g. Abstain">
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                    <a href="#" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Publish Resolution</button>
+                </div>
+            </form>
         </div>
     </div>
 

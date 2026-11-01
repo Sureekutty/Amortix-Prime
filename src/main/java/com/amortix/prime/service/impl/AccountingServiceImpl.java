@@ -19,6 +19,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class AccountingServiceImpl implements AccountingService {
@@ -42,7 +43,7 @@ public class AccountingServiceImpl implements AccountingService {
     @Transactional
     public DailyAccountProcessing getOrCreateDayBook(LocalDate date) {
         return dailyRepo.findByProcessingDate(date).orElseGet(() -> {
-            // Fetch yesterday's closing to use as today's opening
+            // Fetch previous closing balance to carry forward as today's opening
             DailyAccountProcessing last = dailyRepo.findTopByOrderByProcessingDateDesc().orElse(null);
             BigDecimal openCash = last != null ? last.getClosingCashBalance() : new BigDecimal("50000.00");
             BigDecimal openBank = last != null ? last.getClosingBankBalance() : new BigDecimal("2500000.00");
@@ -56,6 +57,10 @@ public class AccountingServiceImpl implements AccountingService {
     @Transactional
     public DailyAccountProcessing closeAndLockDayBook(LocalDate date, String remarks, String operatorUser) {
         DailyAccountProcessing day = getOrCreateDayBook(date);
+        if ("CLOSED".equalsIgnoreCase(day.getDayStatus())) {
+            throw new IllegalStateException("Day book for " + date + " is already closed and locked.");
+        }
+
         DayBookSummary summary = generateDayBookSummary(date);
 
         day.setTotalCashReceipts(summary.totalCashReceipts());
@@ -78,26 +83,47 @@ public class AccountingServiceImpl implements AccountingService {
     @Override
     @Transactional
     public Voucher createVoucher(Voucher voucher, String operatorUser) {
+        LocalDate vDate = voucher.getVoucherDate() != null ? voucher.getVoucherDate() : LocalDate.now();
+        voucher.setVoucherDate(vDate);
+
+        // Prevent posting into a closed accounting day (Bug #6 & Bug #20 fix)
+        DailyAccountProcessing day = getOrCreateDayBook(vDate);
+        if ("CLOSED".equalsIgnoreCase(day.getDayStatus())) {
+            throw new IllegalStateException("Cannot post voucher into a closed and locked accounting day: " + vDate);
+        }
+
+        // Unique formatted voucher number generation (Bug #21 fix)
         if (voucher.getVoucherNo() == null || voucher.getVoucherNo().isBlank()) {
             String prefix = "RECEIPT".equalsIgnoreCase(voucher.getVoucherType()) ? "RCP" :
                            "PAYMENT".equalsIgnoreCase(voucher.getVoucherType()) ? "PMT" :
                            "JOURNAL_VOUCHER".equalsIgnoreCase(voucher.getVoucherType()) ? "JV" : "MISC";
-            voucher.setVoucherNo(prefix + "-" + System.currentTimeMillis() % 1000000);
+            String uniquePart = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+            voucher.setVoucherNo(prefix + "-" + vDate.toString().replace("-", "") + "-" + uniquePart);
         }
+
         voucher.setPreparedBy(operatorUser);
         voucher.setStatus("POSTED");
         Voucher saved = voucherRepo.save(voucher);
 
-        // Update ledger balances if accounts are provided
+        // Proper Double-Entry Ledger balance updates (Bug #5 fix)
         if (voucher.getDebitAccountCode() != null) {
             ledgerRepo.findByAccountCode(voucher.getDebitAccountCode()).ifPresent(acc -> {
-                acc.setCurrentBalance(acc.getCurrentBalance().add(voucher.getAmount()));
+                if ("DEBIT".equalsIgnoreCase(acc.getNormalBalance())) {
+                    acc.setCurrentBalance(acc.getCurrentBalance().add(voucher.getAmount()));
+                } else {
+                    acc.setCurrentBalance(acc.getCurrentBalance().subtract(voucher.getAmount()));
+                }
                 ledgerRepo.save(acc);
             });
         }
+
         if (voucher.getCreditAccountCode() != null) {
             ledgerRepo.findByAccountCode(voucher.getCreditAccountCode()).ifPresent(acc -> {
-                acc.setCurrentBalance(acc.getCurrentBalance().add(voucher.getAmount()));
+                if ("CREDIT".equalsIgnoreCase(acc.getNormalBalance())) {
+                    acc.setCurrentBalance(acc.getCurrentBalance().add(voucher.getAmount()));
+                } else {
+                    acc.setCurrentBalance(acc.getCurrentBalance().subtract(voucher.getAmount()));
+                }
                 ledgerRepo.save(acc);
             });
         }

@@ -13,9 +13,9 @@
             </div>
             <div style="display: flex; gap: 8px;">
                 <a th:href="@{'/loans/pdf/' + ${loan.loanAccountNo}}" class="btn btn-secondary btn-sm">📄 Sanction Order PDF</a>
-                <a th:if="${loan.status == 'APPLIED'}" href="#approveModal" class="btn btn-primary btn-sm">Approve Loan</a>
-                <a th:if="${loan.status == 'APPROVED'}" href="#disburseModal" class="btn btn-success btn-sm">Disburse Funds</a>
-                <a th:if="${loan.status == 'ACTIVE'}" th:href="@{'/loans/repay/' + ${loan.loanAccountNo}}" class="btn btn-primary btn-sm">Record Repayment</a>
+                <a sec:authorize="hasRole('ADMIN')" th:if="${loan.status == 'APPLIED'}" href="#approveModal" class="btn btn-primary btn-sm">Approve Loan</a>
+                <a sec:authorize="hasRole('ADMIN')" th:if="${loan.status == 'APPROVED'}" href="#disburseModal" class="btn btn-success btn-sm">Disburse Funds</a>
+                <a sec:authorize="hasAnyRole('ADMIN', 'STAFF')" th:if="${loan.status == 'ACTIVE'}" th:href="@{'/loans/repay/' + ${loan.loanAccountNo}}" class="btn btn-primary btn-sm">Record Repayment</a>
             </div>
         </div>
 
@@ -121,7 +121,7 @@
 
     <!-- Pure CSS Modals (Zero-JS via :target) -->
     <!-- Approve Modal -->
-    <div id="approveModal" class="modal-overlay">
+    <div id="approveModal" class="modal-overlay" sec:authorize="hasRole('ADMIN')">
         <div class="modal-box">
             <a href="#" class="modal-close">&times;</a>
             <h3 style="margin-bottom: 12px; color: var(--text-main);">Approve Loan Application</h3>
@@ -139,7 +139,7 @@
     </div>
 
     <!-- Disburse Modal -->
-    <div id="disburseModal" class="modal-overlay">
+    <div id="disburseModal" class="modal-overlay" sec:authorize="hasRole('ADMIN')">
         <div class="modal-box">
             <a href="#" class="modal-close">&times;</a>
             <h3 style="margin-bottom: 12px; color: var(--text-main);">Disburse Loan Funds</h3>

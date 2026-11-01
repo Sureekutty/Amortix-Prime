@@ -11,8 +11,8 @@
                 <span th:text="${deposit.tenureMonths} + ' Months Tenure'" style="color: var(--text-dim);">Tenure</span>
             </div>
             <div>
-                <a th:if="${deposit.status == 'ACTIVE'}" href="#prematureCloseModal" class="btn btn-danger btn-sm">Premature Withdrawal</a>
-                <a th:if="${deposit.depositType == 'RCD' and deposit.status == 'ACTIVE'}" href="#rcdModal" class="btn btn-primary btn-sm" style="margin-left: 8px;">➕ Post Installment</a>
+                <a sec:authorize="hasAnyRole('ADMIN', 'STAFF')" th:if="${deposit.status == 'ACTIVE'}" href="#prematureCloseModal" class="btn btn-danger btn-sm">Premature Withdrawal</a>
+                <a sec:authorize="hasAnyRole('ADMIN', 'STAFF')" th:if="${deposit.depositType == 'RCD' and deposit.status == 'ACTIVE'}" href="#rcdModal" class="btn btn-primary btn-sm" style="margin-left: 8px;">➕ Post Installment</a>
             </div>
         </div>
 
@@ -78,7 +78,7 @@
     </div>
 
     <!-- Premature Close Modal (Zero-JS via :target) -->
-    <div id="prematureCloseModal" class="modal-overlay">
+    <div id="prematureCloseModal" class="modal-overlay" sec:authorize="hasAnyRole('ADMIN', 'STAFF')">
         <div class="modal-box">
             <a href="#" class="modal-close">&times;</a>
             <h3 style="margin-bottom: 12px; color: var(--danger);">Premature Deposit Closure</h3>

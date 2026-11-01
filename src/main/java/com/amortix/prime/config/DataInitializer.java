@@ -22,6 +22,7 @@ public class DataInitializer implements CommandLineRunner {
     private final InterestRateRuleRepository interestRepo;
     private final GeneralLedgerAccountRepository ledgerRepo;
     private final DailyAccountProcessingRepository dailyRepo;
+    private final PollRepository pollRepo;
     private final PasswordEncoder passwordEncoder;
 
     public DataInitializer(UserAccountRepository userRepo,
@@ -32,6 +33,7 @@ public class DataInitializer implements CommandLineRunner {
                            InterestRateRuleRepository interestRepo,
                            GeneralLedgerAccountRepository ledgerRepo,
                            DailyAccountProcessingRepository dailyRepo,
+                           PollRepository pollRepo,
                            PasswordEncoder passwordEncoder) {
         this.userRepo = userRepo;
         this.memberRepo = memberRepo;
@@ -41,6 +43,7 @@ public class DataInitializer implements CommandLineRunner {
         this.interestRepo = interestRepo;
         this.ledgerRepo = ledgerRepo;
         this.dailyRepo = dailyRepo;
+        this.pollRepo = pollRepo;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -52,6 +55,7 @@ public class DataInitializer implements CommandLineRunner {
         seedChartOfAccounts();
         seedInitialDayBook();
         seedSampleMembersAndLoans();
+        seedSamplePoll();
     }
 
     private void seedUsers() {
@@ -224,6 +228,18 @@ public class DataInitializer implements CommandLineRunner {
             dep1.setTotalPaidIn(new BigDecimal("100000.00"));
             dep1.setStatus("ACTIVE");
             depositRepo.save(dep1);
+        }
+    }
+
+    private void seedSamplePoll() {
+        if (pollRepo.count() == 0) {
+            Poll poll = new Poll(
+                    "Annual Dividend & Thrift Interest Rate Resolution 2026",
+                    "AGM Resolution 01: To declare a 9.5% annual dividend on paid-up share capital and maintain 6.0% p.a. interest on Compulsory Thrift Savings for FY 2026-27.",
+                    List.of("In Favor (Approve Proposal)", "Against (Refer back to Board)", "Abstain"),
+                    "admin"
+            );
+            pollRepo.save(poll);
         }
     }
 }

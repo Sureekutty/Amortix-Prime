@@ -14,7 +14,7 @@
             <div>
                 <span th:class="'badge ' + (${member.status == 'ACTIVE'} ? 'badge-success' : 'badge-danger')"
                       th:text="${member.status}">ACTIVE</span>
-                <a th:if="${member.status == 'ACTIVE'}" th:href="@{'/members/settle/' + ${member.memberCode}}" class="btn btn-danger btn-sm" style="margin-left: 10px;">Execute Settlement</a>
+                <a sec:authorize="hasRole('ADMIN')" th:if="${member.status == 'ACTIVE'}" th:href="@{'/members/settle/' + ${member.memberCode}}" class="btn btn-danger btn-sm" style="margin-left: 10px;">Execute Settlement</a>
             </div>
         </div>
 
@@ -85,7 +85,7 @@
     <div class="card">
         <div class="card-header">
             <div class="card-title">Term & Recurring Deposits</div>
-            <a th:href="@{'/deposits/open?memberCode=' + ${member.memberCode}}" class="btn btn-secondary btn-sm">➕ Open Term Deposit</a>
+            <a sec:authorize="hasAnyRole('ADMIN', 'STAFF')" th:href="@{'/deposits/open?memberCode=' + ${member.memberCode}}" class="btn btn-secondary btn-sm">➕ Open Term Deposit</a>
         </div>
         <div class="table-responsive">
             <table>

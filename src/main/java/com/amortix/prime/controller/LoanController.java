@@ -8,12 +8,14 @@ import com.amortix.prime.repository.SuretyReplacementRepository;
 import com.amortix.prime.service.LoanService;
 import com.amortix.prime.service.MemberService;
 import com.amortix.prime.service.PdfExportService;
+import com.amortix.prime.service.SecurityService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -31,18 +33,22 @@ public class LoanController {
     private final MemberService memberService;
     private final SuretyReplacementRepository suretyReplacementRepo;
     private final PdfExportService pdfExportService;
+    private final SecurityService securityService;
 
     public LoanController(LoanService loanService,
                           MemberService memberService,
                           SuretyReplacementRepository suretyReplacementRepo,
-                          PdfExportService pdfExportService) {
+                          PdfExportService pdfExportService,
+                          SecurityService securityService) {
         this.loanService = loanService;
         this.memberService = memberService;
         this.suretyReplacementRepo = suretyReplacementRepo;
         this.pdfExportService = pdfExportService;
+        this.securityService = securityService;
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public String listLoans(@RequestParam(value = "search", required = false) String search,
                             @RequestParam(value = "page", defaultValue = "0") int page,
                             Model model) {
@@ -58,9 +64,18 @@ public class LoanController {
         loan.setLoanType("LTL");
         loan.setTenureMonths(36);
         loan.setSanctionAmount(new BigDecimal("200000.00"));
-        if (memberCode != null && !memberCode.isBlank()) {
-            loan.setMemberCode(memberCode);
+
+        if (securityService.isMember() && !securityService.isAdmin() && !securityService.isStaff()) {
+            // Strict member lockdown: cannot apply on behalf of other members
+            loan.setMemberCode(securityService.getCurrentMemberCode());
+            model.addAttribute("isMemberApplying", true);
+        } else {
+            if (memberCode != null && !memberCode.isBlank()) {
+                loan.setMemberCode(memberCode);
+            }
+            model.addAttribute("isMemberApplying", false);
         }
+
         loan.getSureties().add(new Loan.LoanSurety("", "", "", BigDecimal.ZERO));
         loan.getSureties().add(new Loan.LoanSurety("", "", "", BigDecimal.ZERO));
 
@@ -72,6 +87,11 @@ public class LoanController {
     @PostMapping("/save")
     public String submitLoanApplication(@ModelAttribute Loan loan, RedirectAttributes redirectAttrs) {
         try {
+            // Ensure a member cannot inject someone else's memberCode
+            if (securityService.isMember() && !securityService.isAdmin() && !securityService.isStaff()) {
+                loan.setMemberCode(securityService.getCurrentMemberCode());
+            }
+
             Loan saved = loanService.applyForLoan(loan);
             redirectAttrs.addFlashAttribute("successMessage", "Loan application submitted successfully! Account No: " + saved.getLoanAccountNo());
             return "redirect:/loans/view/" + saved.getLoanAccountNo();
@@ -83,6 +103,9 @@ public class LoanController {
 
     @GetMapping("/view/{loanAccountNo}")
     public String viewLoanDetails(@PathVariable String loanAccountNo, Model model) {
+        // Enforce loan data isolation
+        securityService.validateLoanAccess(loanAccountNo);
+
         Loan loan = loanService.findByLoanAccountNo(loanAccountNo);
         List<LoanTransaction> transactions = loanService.getLoanLedger(loanAccountNo);
         model.addAttribute("loan", loan);
@@ -91,9 +114,10 @@ public class LoanController {
     }
 
     @PostMapping("/approve/{loanAccountNo}")
+    @PreAuthorize("hasRole('ADMIN')")
     public String approveLoan(@PathVariable String loanAccountNo, Authentication auth, RedirectAttributes redirectAttrs) {
         try {
-            String officer = auth != null ? auth.getName() : "OFFICER";
+            String officer = auth != null ? auth.getName() : "ADMIN";
             loanService.approveLoan(loanAccountNo, officer);
             redirectAttrs.addFlashAttribute("successMessage", "Loan " + loanAccountNo + " approved!");
         } catch (Exception e) {
@@ -103,13 +127,14 @@ public class LoanController {
     }
 
     @PostMapping("/disburse/{loanAccountNo}")
+    @PreAuthorize("hasRole('ADMIN')")
     public String disburseLoan(@PathVariable String loanAccountNo,
                                @RequestParam(value = "paymentMode", defaultValue = "BANK_TRANSFER") String mode,
                                @RequestParam(value = "chequeOrRefNo", defaultValue = "UTR-DIRECT") String refNo,
                                Authentication auth,
                                RedirectAttributes redirectAttrs) {
         try {
-            String officer = auth != null ? auth.getName() : "OFFICER";
+            String officer = auth != null ? auth.getName() : "ADMIN";
             loanService.sanctionAndDisburseLoan(loanAccountNo, mode, refNo, officer);
             redirectAttrs.addFlashAttribute("successMessage", "Loan " + loanAccountNo + " successfully disbursed! Vouchers and ledgers updated.");
         } catch (Exception e) {
@@ -119,6 +144,7 @@ public class LoanController {
     }
 
     @GetMapping("/repay/{loanAccountNo}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public String repaymentForm(@PathVariable String loanAccountNo, Model model) {
         Loan loan = loanService.findByLoanAccountNo(loanAccountNo);
         model.addAttribute("loan", loan);
@@ -126,6 +152,7 @@ public class LoanController {
     }
 
     @PostMapping("/repay/{loanAccountNo}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public String submitRepayment(@PathVariable String loanAccountNo,
                                   @RequestParam("principalAmount") BigDecimal principal,
                                   @RequestParam("interestAmount") BigDecimal interest,
@@ -146,6 +173,7 @@ public class LoanController {
     }
 
     @GetMapping("/surety-replace")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public String listSuretyReplacements(Model model) {
         List<SuretyReplacement> pending = suretyReplacementRepo.findByStatus("PENDING");
         List<SuretyReplacement> all = suretyReplacementRepo.findAll();
@@ -162,18 +190,21 @@ public class LoanController {
                                            @RequestParam("reason") String reason,
                                            RedirectAttributes redirectAttrs) {
         try {
+            // Validate loan access
+            securityService.validateLoanAccess(loanNo);
             loanService.requestSuretyReplacement(loanNo, oldSurety, newSurety, reason);
             redirectAttrs.addFlashAttribute("successMessage", "Surety replacement request submitted for approval.");
         } catch (Exception e) {
             redirectAttrs.addFlashAttribute("errorMessage", "Request failed: " + e.getMessage());
         }
-        return "redirect:/loans/surety-replace";
+        return "redirect:/loans/view/" + loanNo;
     }
 
     @PostMapping("/surety-replace/approve/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public String approveSuretyReplacement(@PathVariable String id, Authentication auth, RedirectAttributes redirectAttrs) {
         try {
-            String officer = auth != null ? auth.getName() : "OFFICER";
+            String officer = auth != null ? auth.getName() : "ADMIN";
             loanService.approveSuretyReplacement(id, officer);
             redirectAttrs.addFlashAttribute("successMessage", "Surety replacement approved successfully!");
         } catch (Exception e) {
@@ -184,6 +215,9 @@ public class LoanController {
 
     @GetMapping("/pdf/{loanAccountNo}")
     public ResponseEntity<byte[]> downloadLoanSanctionPdf(@PathVariable String loanAccountNo) {
+        // Enforce loan access
+        securityService.validateLoanAccess(loanAccountNo);
+
         Loan loan = loanService.findByLoanAccountNo(loanAccountNo);
         Member member = memberService.findByMemberCode(loan.getMemberCode());
         byte[] pdfBytes = pdfExportService.generateLoanSanctionPdf(loan, member);

@@ -3,7 +3,9 @@ package com.amortix.prime.controller;
 import com.amortix.prime.model.Member;
 import com.amortix.prime.model.ThriftTransaction;
 import com.amortix.prime.service.MemberService;
+import com.amortix.prime.service.SecurityService;
 import com.amortix.prime.service.ThriftService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,13 +21,16 @@ public class ThriftController {
 
     private final ThriftService thriftService;
     private final MemberService memberService;
+    private final SecurityService securityService;
 
-    public ThriftController(ThriftService thriftService, MemberService memberService) {
+    public ThriftController(ThriftService thriftService, MemberService memberService, SecurityService securityService) {
         this.thriftService = thriftService;
         this.memberService = memberService;
+        this.securityService = securityService;
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public String thriftOverview(Model model) {
         List<Member> members = memberService.listActiveMembers();
         BigDecimal totalThriftPool = members.stream()
@@ -43,11 +48,12 @@ public class ThriftController {
     }
 
     @PostMapping("/annual-interest")
+    @PreAuthorize("hasRole('ADMIN')")
     public String runAnnualThriftInterest(@RequestParam(value = "rate", defaultValue = "6.0") double rate,
                                           Authentication auth,
                                           RedirectAttributes redirectAttrs) {
         try {
-            String officer = auth != null ? auth.getName() : "OFFICER";
+            String officer = auth != null ? auth.getName() : "ADMIN";
             ThriftService.ThriftInterestRunResult res = thriftService.calculateAndCreditAnnualThriftInterest(rate, officer);
             redirectAttrs.addFlashAttribute("successMessage", "Annual thrift interest run executed! Credited INR "
                     + res.totalInterestDistributed() + " across " + res.totalMembersProcessed() + " members.");
@@ -59,10 +65,22 @@ public class ThriftController {
 
     @GetMapping("/member/{memberCode}")
     public String memberThriftLedger(@PathVariable String memberCode, Model model) {
+        // Enforce member data isolation
+        securityService.validateMemberAccess(memberCode);
+
         Member member = memberService.findByMemberCode(memberCode);
         List<ThriftTransaction> txns = thriftService.getMemberThriftLedger(memberCode);
         model.addAttribute("member", member);
         model.addAttribute("transactions", txns);
         return "thrift/member_ledger";
+    }
+
+    @GetMapping("/my-thrift")
+    public String viewMyThriftLedger() {
+        String memberCode = securityService.getCurrentMemberCode();
+        if (memberCode == null) {
+            return "redirect:/dashboard";
+        }
+        return "redirect:/thrift/member/" + memberCode;
     }
 }

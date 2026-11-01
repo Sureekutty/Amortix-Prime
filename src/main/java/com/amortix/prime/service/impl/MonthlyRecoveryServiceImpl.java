@@ -2,9 +2,12 @@ package com.amortix.prime.service.impl;
 
 import com.amortix.prime.model.*;
 import com.amortix.prime.repository.*;
+import com.amortix.prime.service.DepositService;
 import com.amortix.prime.service.LoanService;
 import com.amortix.prime.service.MonthlyRecoveryService;
 import com.amortix.prime.service.ThriftService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,11 +16,14 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.*;
 
 @Service
 public class MonthlyRecoveryServiceImpl implements MonthlyRecoveryService {
+
+    private static final Logger log = LoggerFactory.getLogger(MonthlyRecoveryServiceImpl.class);
 
     private final MonthlyRecoveryRunRepository recoveryRunRepository;
     private final MemberRepository memberRepository;
@@ -25,21 +31,24 @@ public class MonthlyRecoveryServiceImpl implements MonthlyRecoveryService {
     private final DepositAccountRepository depositAccountRepository;
     private final LoanService loanService;
     private final ThriftService thriftService;
+    private final DepositService depositService;
     private final AuditLogRepository auditLogRepository;
 
     public MonthlyRecoveryServiceImpl(MonthlyRecoveryRunRepository recoveryRunRepository,
-                                     MemberRepository memberRepository,
-                                     LoanRepository loanRepository,
-                                     DepositAccountRepository depositAccountRepository,
-                                     LoanService loanService,
-                                     ThriftService thriftService,
-                                     AuditLogRepository auditLogRepository) {
+                                      MemberRepository memberRepository,
+                                      LoanRepository loanRepository,
+                                      DepositAccountRepository depositAccountRepository,
+                                      LoanService loanService,
+                                      ThriftService thriftService,
+                                      DepositService depositService,
+                                      AuditLogRepository auditLogRepository) {
         this.recoveryRunRepository = recoveryRunRepository;
         this.memberRepository = memberRepository;
         this.loanRepository = loanRepository;
         this.depositAccountRepository = depositAccountRepository;
         this.loanService = loanService;
         this.thriftService = thriftService;
+        this.depositService = depositService;
         this.auditLogRepository = auditLogRepository;
     }
 
@@ -77,31 +86,34 @@ public class MonthlyRecoveryServiceImpl implements MonthlyRecoveryService {
             item.setThriftDemand(thrift);
             totalThrift = totalThrift.add(thrift);
 
-            // 2. Active Loan Installments
+            // 2. Active Loan Installments (Iterate over ALL active loans for member - Bug #23 fix)
             List<Loan> activeLoans = loanRepository.findByMemberCodeAndStatus(m.getMemberCode(), "ACTIVE");
-            BigDecimal loanPri = BigDecimal.ZERO;
-            BigDecimal loanInt = BigDecimal.ZERO;
+            BigDecimal memberTotalLoanPri = BigDecimal.ZERO;
+            BigDecimal memberTotalLoanInt = BigDecimal.ZERO;
+            StringBuilder loanAccs = new StringBuilder();
 
-            if (!activeLoans.isEmpty()) {
-                Loan primaryLoan = activeLoans.get(0);
-                item.setActiveLoanAccountNo(primaryLoan.getLoanAccountNo());
-
-                // Reducing balance monthly interest: Outstanding * (Rate / 12) / 100
-                double monthlyRate = (primaryLoan.getInterestRate() / 12.0) / 100.0;
-                loanInt = primaryLoan.getOutstandingPrincipal()
+            for (Loan loan : activeLoans) {
+                double monthlyRate = (loan.getInterestRate() / 12.0) / 100.0;
+                BigDecimal singleLoanInt = loan.getOutstandingPrincipal()
                         .multiply(BigDecimal.valueOf(monthlyRate))
                         .setScale(2, RoundingMode.HALF_UP);
 
-                // Principal portion: EMI minus Interest (or capped at outstanding)
-                BigDecimal emi = primaryLoan.getMonthlyInstallment();
-                loanPri = emi.subtract(loanInt).max(BigDecimal.ZERO).min(primaryLoan.getOutstandingPrincipal());
+                BigDecimal emi = loan.getMonthlyInstallment() != null ? loan.getMonthlyInstallment() : BigDecimal.ZERO;
+                BigDecimal singleLoanPri = emi.subtract(singleLoanInt).max(BigDecimal.ZERO).min(loan.getOutstandingPrincipal());
 
-                item.setLoanPrincipalDemand(loanPri);
-                item.setLoanInterestDemand(loanInt);
+                memberTotalLoanInt = memberTotalLoanInt.add(singleLoanInt);
+                memberTotalLoanPri = memberTotalLoanPri.add(singleLoanPri);
 
-                totalPrincipal = totalPrincipal.add(loanPri);
-                totalInterest = totalInterest.add(loanInt);
+                if (loanAccs.length() > 0) loanAccs.append(",");
+                loanAccs.append(loan.getLoanAccountNo());
             }
+
+            item.setActiveLoanAccountNo(loanAccs.length() > 0 ? loanAccs.toString() : null);
+            item.setLoanPrincipalDemand(memberTotalLoanPri);
+            item.setLoanInterestDemand(memberTotalLoanInt);
+
+            totalPrincipal = totalPrincipal.add(memberTotalLoanPri);
+            totalInterest = totalInterest.add(memberTotalLoanInt);
 
             // 3. Active RCD (Recurring Deposit) Installment
             List<DepositAccount> activeRcds = depositAccountRepository.findByMemberCodeAndStatus(m.getMemberCode(), "ACTIVE");
@@ -114,7 +126,7 @@ public class MonthlyRecoveryServiceImpl implements MonthlyRecoveryService {
             item.setRcdDemand(rcdDemand);
             totalRcd = totalRcd.add(rcdDemand);
 
-            BigDecimal totalMemberDemand = thrift.add(loanPri).add(loanInt).add(rcdDemand);
+            BigDecimal totalMemberDemand = thrift.add(memberTotalLoanPri).add(memberTotalLoanInt).add(rcdDemand);
             item.setTotalDemand(totalMemberDemand);
             item.setStatus("PENDING");
 
@@ -172,9 +184,14 @@ public class MonthlyRecoveryServiceImpl implements MonthlyRecoveryService {
     public MonthlyRecoveryRun reconcilePayrollResponse(String runCode, InputStream responseFileStream, String operatorUser) {
         MonthlyRecoveryRun run = findByRunCode(runCode);
 
-        // Read uploaded response CSV / Text file (Format: MemberCode,DeductedAmount or EmpCode,DeductedAmount)
+        // Prevent duplicate reconciliation (Bug #2 fix)
+        if ("RECONCILED".equalsIgnoreCase(run.getStatus())) {
+            throw new IllegalStateException("Recovery schedule [" + runCode + "] has already been reconciled and posted.");
+        }
+
+        // Read uploaded response CSV / Text file with UTF-8 (Bug #26 fix)
         Map<String, BigDecimal> actualDeductions = new HashMap<>();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(responseFileStream))) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(responseFileStream, StandardCharsets.UTF_8))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 line = line.trim();
@@ -187,7 +204,9 @@ public class MonthlyRecoveryServiceImpl implements MonthlyRecoveryService {
                     try {
                         BigDecimal amt = new BigDecimal(parts[1].trim());
                         actualDeductions.put(code, amt);
-                    } catch (Exception ignored) {}
+                    } catch (NumberFormatException nfe) {
+                        log.warn("Invalid deduction amount in response file for code {}: {}", code, parts[1]);
+                    }
                 }
             }
         } catch (Exception e) {
@@ -214,40 +233,59 @@ public class MonthlyRecoveryServiceImpl implements MonthlyRecoveryService {
             item.setVariance(variance);
             totalRecovered = totalRecovered.add(deducted);
 
+            // Unique receipt number per member (Bug #1 fix)
+            String memberReceiptNo = String.format("REC-%s-%s", runCode, item.getMemberCode());
+
             if (variance.compareTo(BigDecimal.ZERO) == 0) {
                 item.setStatus("MATCHED");
 
-                // Execute automated ledger postings
+                // 1. Thrift posting
                 if (item.getThriftDemand().compareTo(BigDecimal.ZERO) > 0) {
                     thriftService.creditMonthlyThrift(item.getMemberCode(), item.getThriftDemand(), runCode, operatorUser);
                 }
-                if (item.getActiveLoanAccountNo() != null && item.getLoanPrincipalDemand().add(item.getLoanInterestDemand()).compareTo(BigDecimal.ZERO) > 0) {
-                    loanService.recordLoanRepayment(item.getActiveLoanAccountNo(), item.getLoanPrincipalDemand(),
-                            item.getLoanInterestDemand(), "PAYROLL_DEDUCTION", runCode, "Auto payroll recovery", operatorUser);
-                }
+
+                // 2. Loan repayment posting
+                postLoanRepayments(item.getMemberCode(), item.getLoanPrincipalDemand(), item.getLoanInterestDemand(),
+                        memberReceiptNo, "Auto payroll recovery", operatorUser);
+
+                // 3. RCD installment posting (Bug #3 fix)
+                postRcdInstallment(item.getMemberCode(), item.getRcdDemand(), memberReceiptNo, operatorUser);
+
             } else if (variance.compareTo(BigDecimal.ZERO) < 0) {
                 item.setStatus(deducted.compareTo(BigDecimal.ZERO) == 0 ? "UNPAID" : "SHORT");
                 totalVariance = totalVariance.add(variance.abs());
 
-                // Record discrepancy into WrongPayment list (Amortix WrongPayment)
                 discrepancies.add(new MonthlyRecoveryRun.WrongPaymentRecord(
                         item.getMemberCode(), item.getEmployeeCode(), item.getTotalDemand(),
                         deducted, variance.abs(), "Short deduction in payroll cycle " + runCode));
 
-                // Water-fall allocation for partial deduction: Thrift first, then Interest, then Principal
+                // Water-fall allocation for partial deduction: Thrift first, then RCD, then Loan Interest, then Loan Principal
                 BigDecimal remaining = deducted;
+
+                // A. Thrift
                 BigDecimal thriftPart = remaining.min(item.getThriftDemand());
                 if (thriftPart.compareTo(BigDecimal.ZERO) > 0) {
                     thriftService.creditMonthlyThrift(item.getMemberCode(), thriftPart, runCode, operatorUser);
                     remaining = remaining.subtract(thriftPart);
                 }
+
+                // B. RCD (Bug #3 fix)
+                BigDecimal rcdPart = remaining.min(item.getRcdDemand());
+                if (rcdPart.compareTo(BigDecimal.ZERO) > 0) {
+                    postRcdInstallment(item.getMemberCode(), rcdPart, memberReceiptNo, operatorUser);
+                    remaining = remaining.subtract(rcdPart);
+                }
+
+                // C. Loan Interest
                 BigDecimal interestPart = remaining.min(item.getLoanInterestDemand());
                 remaining = remaining.subtract(interestPart);
+
+                // D. Loan Principal
                 BigDecimal principalPart = remaining.min(item.getLoanPrincipalDemand());
 
-                if (item.getActiveLoanAccountNo() != null && interestPart.add(principalPart).compareTo(BigDecimal.ZERO) > 0) {
-                    loanService.recordLoanRepayment(item.getActiveLoanAccountNo(), principalPart, interestPart,
-                            "PAYROLL_DEDUCTION", runCode, "Partial payroll recovery", operatorUser);
+                if (interestPart.add(principalPart).compareTo(BigDecimal.ZERO) > 0) {
+                    postLoanRepayments(item.getMemberCode(), principalPart, interestPart,
+                            memberReceiptNo, "Partial payroll recovery", operatorUser);
                 }
             } else {
                 item.setStatus("EXCESS");
@@ -260,10 +298,9 @@ public class MonthlyRecoveryServiceImpl implements MonthlyRecoveryService {
                 if (item.getThriftDemand().compareTo(BigDecimal.ZERO) > 0) {
                     thriftService.creditMonthlyThrift(item.getMemberCode(), item.getThriftDemand().add(variance), runCode, operatorUser);
                 }
-                if (item.getActiveLoanAccountNo() != null) {
-                    loanService.recordLoanRepayment(item.getActiveLoanAccountNo(), item.getLoanPrincipalDemand(),
-                            item.getLoanInterestDemand(), "PAYROLL_DEDUCTION", runCode, "Payroll recovery", operatorUser);
-                }
+                postLoanRepayments(item.getMemberCode(), item.getLoanPrincipalDemand(), item.getLoanInterestDemand(),
+                        memberReceiptNo, "Payroll recovery", operatorUser);
+                postRcdInstallment(item.getMemberCode(), item.getRcdDemand(), memberReceiptNo, operatorUser);
             }
         }
 
@@ -280,5 +317,30 @@ public class MonthlyRecoveryServiceImpl implements MonthlyRecoveryService {
                 "Reconciled payroll. Recovered: ₹" + totalRecovered + ", Discrepancies count: " + discrepancies.size()));
 
         return saved;
+    }
+
+    private void postLoanRepayments(String memberCode, BigDecimal principal, BigDecimal interest,
+                                    String receiptNo, String remarks, String operatorUser) {
+        if (principal.add(interest).compareTo(BigDecimal.ZERO) <= 0) return;
+
+        List<Loan> activeLoans = loanRepository.findByMemberCodeAndStatus(memberCode, "ACTIVE");
+        if (activeLoans.isEmpty()) return;
+
+        // Post to primary active loan (or first in list)
+        Loan loan = activeLoans.get(0);
+        loanService.recordLoanRepayment(loan.getLoanAccountNo(), principal, interest,
+                "PAYROLL_DEDUCTION", receiptNo, remarks, operatorUser);
+    }
+
+    private void postRcdInstallment(String memberCode, BigDecimal rcdAmount, String receiptNo, String operatorUser) {
+        if (rcdAmount == null || rcdAmount.compareTo(BigDecimal.ZERO) <= 0) return;
+
+        List<DepositAccount> activeRcds = depositAccountRepository.findByMemberCodeAndStatus(memberCode, "ACTIVE");
+        for (DepositAccount rcd : activeRcds) {
+            if ("RCD".equalsIgnoreCase(rcd.getDepositType())) {
+                depositService.recordRcdInstallment(rcd.getDepositAccountNo(), rcdAmount, receiptNo, operatorUser);
+                break;
+            }
+        }
     }
 }

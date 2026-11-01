@@ -12,7 +12,7 @@
             <div>
                 <span th:class="'badge ' + (${summary.dayStatus == 'CLOSED'} ? 'badge-danger' : 'badge-success')"
                       th:text="${summary.dayStatus}">OPEN</span>
-                <a th:if="${summary.dayStatus == 'OPEN'}" href="#closeDayModal" class="btn btn-danger btn-sm" style="margin-left: 10px;">🔒 Close & Lock Day Book</a>
+                <a sec:authorize="hasRole('ADMIN')" th:if="${summary.dayStatus == 'OPEN'}" href="#closeDayModal" class="btn btn-danger btn-sm" style="margin-left: 10px;">🔒 Close & Lock Day Book</a>
             </div>
         </div>
 
@@ -111,7 +111,7 @@
     </div>
 
     <!-- Close Day Modal (Zero-JS via :target) -->
-    <div id="closeDayModal" class="modal-overlay">
+    <div id="closeDayModal" class="modal-overlay" sec:authorize="hasRole('ADMIN')">
         <div class="modal-box">
             <a href="#" class="modal-close">&times;</a>
             <h3 style="margin-bottom: 12px; color: var(--danger);">Day End Closing & Cash Vault Lock</h3>
